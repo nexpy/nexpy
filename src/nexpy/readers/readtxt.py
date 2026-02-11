@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2013-2021, NeXpy Development Team.
+# Copyright (c) 2013-2026, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -66,15 +66,6 @@ class ImportDialog(NXImportDialog):
                            'Comma': ',', 'Colon': ':', 'Semicolon': ';'}
         self.delcombo = NXComboBox(items=self.delimiters)
 
-        self.groupbox = NXLineEdit('data')
-        validator = GroupValidator('NXentry')
-        standard_groups = validator.valid_groups
-        other_groups = sorted([g for g in self.mainwindow.nxclasses
-                               if g not in standard_groups])
-        self.groupcombo = NXComboBox(self.select_class, standard_groups)
-        self.groupcombo.insertSeparator(self.groupcombo.count())
-        self.groupcombo.add(*other_groups)
-        self.groupcombo.select('NXdata')
         self.fieldcombo = NXComboBox(self.select_field)
         self.fieldbox = NXLineEdit(slot=self.update_field)
         self.typecombo = NXComboBox(self.update_field, self.data_types,
@@ -83,7 +74,6 @@ class ImportDialog(NXImportDialog):
                                       ['field', 'signal', 'axis', 'errors',
                                        'exclude'], default='field')
         self.field_layout = self.make_layout(
-            NXLabel('Output Fields', bold=True),
             self.make_layout(self.fieldcombo, self.fieldbox,
                              self.typecombo, self.signalcombo),
             spacing=5, vertical=True)
@@ -98,12 +88,8 @@ class ImportDialog(NXImportDialog):
                                          'Header Row', self.headbox,
                                          'stretch',
                                          'Delimiters', self.delcombo),
-                        NXLabel('Output Group', bold=True),
-                        self.make_layout('Class', self.groupcombo,
-                                         'Name', self.groupbox, align='left'),
-                        self.make_layout(self.customizebutton,
-                                         self.close_buttons(save=True),
-                                         align='justified'),
+                        self.make_layout(self.customizebutton, align='center'),
+                        self.selection_layout(),
                         spacing=5)
         self.set_title("Import "+str(filetype))
         self.data = None
@@ -175,15 +161,6 @@ class ImportDialog(NXImportDialog):
             self.textbox.setStyleSheet("background-color: white;")
         self.textbox.repaint()
 
-    def select_class(self):
-        """Update the group and field combo boxes for the selected class"""
-        self.groupbox.setText(self.groupcombo.selected[2:])
-        if self.groupcombo.selected not in ['NXdata', 'NXmonitor', 'NXlog']:
-            for item in ['signal', 'axis', 'errors']:
-                self.signalcombo.remove(item)
-        else:
-            self.signalcombo.add('signal', 'axis', 'errors')
-
     def select_field(self):
         """Update the combo boxes for the selected field"""
         col = self.fieldcombo.selected
@@ -243,7 +220,7 @@ class ImportDialog(NXImportDialog):
                                   skip_header=skip_header,
                                   dtype=None, autostrip=True, encoding='utf8')
         except ValueError as error:
-            report_error("Importing Text File", error)
+            report_error("Importing text file", error)
             self.data = None
             return
         self.data = {}
@@ -257,9 +234,8 @@ class ImportDialog(NXImportDialog):
                 dtype = 'char'
             data = [c[i] for c in input]
             signal = 'field'
-            if self.groupcombo.selected in ['NXdata', 'NXmonitor', 'NXlog']:
-                if i <= 2 and dtype != 'char':
-                    signal = ['axis', 'signal', 'errors'][i]
+            if i <= 2 and dtype != 'char':
+                signal = ['axis', 'signal', 'errors'][i]
             self.data['Col'+str(i+1)] = {'name': name, 'units': units,
                                          'dtype': dtype, 'signal': signal,
                                          'data': data}
@@ -273,12 +249,12 @@ class ImportDialog(NXImportDialog):
             self.fieldbox.setText(self.data['Col1']['name'])
             self.typecombo.select(self.data['Col1']['dtype'])
             self.signalcombo.select(self.data['Col1']['signal'])
-            self.insert_layout(5, self.field_layout)
+            self.insert_layout(3, self.field_layout)
 
     def get_data(self):
-        """Return the data as an NXentry"""
-        group = NXgroup(name=self.groupbox.text())
-        group.nxclass = self.groupcombo.selected
+        """Return the data as an NXdata group"""
+        group = NXgroup(name=self.import_name)
+        group.nxclass = self.import_class
         if self.title:
             group['title'] = self.title
         for i, col in enumerate([c for c in self.data
@@ -297,7 +273,7 @@ class ImportDialog(NXImportDialog):
                     group.nxaxes = [group[name]]
                 elif self.data[col]['signal'] == 'signal':
                     group.nxerrors = group[name]
-        return NXentry(group)
+        return group
 
     def accept(self):
         """Complete the data import."""
