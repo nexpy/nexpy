@@ -16,12 +16,13 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXlink, NXroot, NXvirtualfield,
                                nxconsolidate, nxgetconfig, nxload, nxsetconfig)
 from nexusformat.nexus.utils import all_dtypes, map_dtype
+from nexusformat.nexus.validate import GroupValidator
 
 from .pyqt import QtCore, QtWidgets, getOpenFileName, getSaveFileName
-from .utils import (convertHTML, display_message, fix_projection, format_mtime,
-                    format_timestamp, get_color, get_mtime, human_size,
-                    keep_data, load_plugin, natural_sort, report_error,
-                    set_style, timestamp, wrap)
+from .utils import (convertHTML, display_message, fix_projection, format_date,
+                    format_mtime, format_timestamp, get_color, get_mtime,
+                    human_size, keep_data, load_plugin, natural_sort,
+                    report_error, set_style, timestamp, wrap)
 from .widgets import (GridParameters, NXCheckBox, NXComboBox, NXDialog,
                       NXDoubleSpinBox, NXHierarchicalComboBox, NXLabel,
                       NXLineEdit, NXPanel, NXPlainTextEdit, NXpolygon,
@@ -4005,6 +4006,7 @@ class ViewTab(NXTab):
 
         if isinstance(node, NXgroup):
             self.group = node
+            self.validator = GroupValidator(self.group.nxclass)
             field_list = [f for f in self.group.NXfield
                           if f.ndim == 0 or (f.ndim == 1 and f.shape[0] == 1)]
             if len(field_list) > 0:
@@ -4027,6 +4029,7 @@ class ViewTab(NXTab):
                         grid_height += field_box.document().size().height()
                         self.grid.addWidget(field_box, row, 1)
                         self.grid.addWidget(NXLabel(field.nxunits), row, 2)
+                    field_box.editingFinished.connect(self.update_scalar_field)
                     row += 1
                 self.grid.setContentsMargins(10, 0, 40, 10)
                 self.grid.setSpacing(5)
@@ -4055,6 +4058,7 @@ class ViewTab(NXTab):
             self.setLayout(layout)
         else:
             self.group = None
+            self.validator = None
             hlayout = QtWidgets.QHBoxLayout()
             hlayout.addStretch()
             hlayout.addLayout(layout)
@@ -4161,6 +4165,28 @@ class ViewTab(NXTab):
         vheight = self.table_view.verticalHeader().length()
         hheight = self.table_view.horizontalHeader().height()
         self.table_view.setFixedHeight(vheight + hheight)
+
+    def update_scalar_field(self):
+        field_box = self.sender()
+        index = self.grid.indexOf(field_box)
+        if index == -1:
+            return
+        row, _, _, _ = self.grid.getItemPosition(index)
+        item = self.grid.itemAtPosition(row, 0)
+        if item is not None:
+            field_name = item.widget().text()
+        else:
+            return
+        if self.validator and field_name in self.validator.valid_fields:
+            if '@type' in self.validator.valid_fields[field_name]:
+                field_type = self.validator.valid_fields[field_name]['@type']
+                if field_type == 'NX_DATE_TIME':
+                    try:
+                        value = format_date(field_box.toPlainText())
+                        field_box.setPlainText(value)
+                    except NeXusError:
+                        self.display_message(f'Invalid date for {field_name}')
+                        field_box.setPlainText(self.group[field_name].nxvalue)
 
     def save_scalar_fields(self):
         if not self.group.is_modifiable():
@@ -4694,8 +4720,6 @@ class FieldDialog(NXDialog):
 
         self.node = node
 
-        self.setWindowTitle("Add NeXus Data")
-
         self.set_layout(self.define_grid(), self.close_buttons(save=True))
         self.set_title("Add NeXus Field")
 
@@ -4720,14 +4744,14 @@ class FieldDialog(NXDialog):
             else:
                 valid_fields[field] = ""
         name_label = NXLabel("Name:")
-        self.name_box = NXLineEdit()
+        self.name_box = NXLineEdit(slot=self.set_field)
         grid.addWidget(name_label, 0, 0)
         grid.addWidget(self.name_box, 0, 1)
         self.field_box = NXComboBox(self.select_field, valid_fields)
         if len(valid_fields) > 0:
             grid.addWidget(self.field_box, 0, 2)
         value_label = NXLabel("Value:")
-        self.value_box = NXLineEdit()
+        self.value_box = NXLineEdit(slot=self.set_value)
         self.enumeration_box = NXComboBox(self.select_enumeration)
         self.enumeration_box.setVisible(False)
         grid.addWidget(value_label, 1, 0)
@@ -4735,8 +4759,11 @@ class FieldDialog(NXDialog):
         grid.addWidget(self.enumeration_box, 1, 2)
         type_label = NXLabel("Datatype:")
         self.type_box = NXComboBox(items=all_dtypes())
+        self.type_guide = NXLabel("")
         grid.addWidget(type_label, 2, 0)
         grid.addWidget(self.type_box, 2, 1)
+        grid.addWidget(self.type_guide, 2, 2)
+        self.type_guide.setVisible(False)
         units_label = NXLabel("Units:")
         self.units_box = NXLineEdit()
         grid.addWidget(units_label, 3, 0)
@@ -4754,13 +4781,20 @@ class FieldDialog(NXDialog):
         """Set the name to the selected item in the field box."""
         field_name = self.field_box.selected
         self.set_name(field_name)
+        self.set_field()
+
+    def set_field(self):
+        field_name = self.get_name()
         self.type_box.clear()
         if field_name in self.standard_fields:
             if "@type" in self.standard_fields[field_name]:
-                valid_dtypes = map_dtype(
-                    self.standard_fields[field_name]["@type"])
+                type_guide = self.standard_fields[field_name]["@type"]
+                valid_dtypes = map_dtype(type_guide)
+                self.type_guide.setText(type_guide)
+                self.type_guide.setVisible(True)
             else:
                 valid_dtypes = map_dtype("NX_CHAR")
+                self.type_guide.setVisible(False)
             self.type_box.add(*valid_dtypes)
             self.type_box.insert(len(valid_dtypes), "")
             other_dtypes = [dt for dt in all_dtypes()
@@ -4777,6 +4811,7 @@ class FieldDialog(NXDialog):
                 self.value_box.setText("")
         else:
             self.type_box.add(*all_dtypes())
+            self.type_guide.setVisible(False)
             self.enumeration_box.setVisible(False)
 
     def select_enumeration(self):
@@ -4815,10 +4850,21 @@ class FieldDialog(NXDialog):
         else:
             return None
 
+    def set_value(self):
+        value = self.get_value()
+        if self.type_guide.isVisible():
+            type_guide = self.type_guide.text()
+            if type_guide == "NX_DATE_TIME":
+                try:
+                    value = format_date(value)
+                    self.value_box.setText(value)
+                except NeXusError:
+                    self.display_message("Invalid date string")
+
     def get_type(self):
         """Return the requested type of the object."""
         dtype = self.type_box.currentText()
-        if dtype == "str" or dtype == "bytes":
+        if dtype == "str" or dtype == "bytes" or dtype == "char":
             return "char"
         else:
             return np.dtype(dtype)
