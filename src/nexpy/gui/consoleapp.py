@@ -19,6 +19,7 @@ import sys
 import tempfile
 from pathlib import Path
 
+from h5py import __version__ as h5py_version
 from IPython import __version__ as ipython_version
 from matplotlib import __version__ as mpl_version
 from nexusformat.nexus import NXroot, nxclasses, nxversion
@@ -141,6 +142,7 @@ class NXConsoleApp(JupyterQtConsoleApp):
         logging.info(QtVersion)
         logging.info('IPython v' + ipython_version)
         logging.info('Matplotlib v' + mpl_version)
+        logging.info('h5py v' + h5py_version)
         logging.info('NeXpy v' + nexpy_version)
         logging.info('nexusformat v' + nxversion)
         sys.stdout = sys.stderr = NXLogger()
@@ -182,7 +184,8 @@ class NXConsoleApp(JupyterQtConsoleApp):
             f"Python {sys.version}\n"
             f"GUI: {QtVersion} | Shell: IPython v{ipython_version} | "
             f"Graphics: Matplotlib v{mpl_version}\n"
-            f"NeXpy v{nexpy_version} | NeXus API: nexusformat v{nxversion}")
+            f"NeXpy v{nexpy_version} | nexusformat v{nxversion} "
+            f"| h5py v{h5py_version}")
         self.config.RichJupyterWidget.include_other_output = False
         self.config.InteractiveShell.banner1 = ""
         self.config.InteractiveShell.banner2 = ""
