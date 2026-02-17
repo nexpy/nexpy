@@ -2505,6 +2505,7 @@ class NXTextBox(NXLineEdit):
 class NXTextEdit(QtWidgets.QTextEdit):
 
     selectionChanged = QtCore.Signal(str)
+    editingFinished = QtCore.Signal()
 
     def __init__(self, text=None, parent=None, slot=None, readonly=False,
                  width=None, align='left', autosize=False):
@@ -2532,10 +2533,8 @@ class NXTextEdit(QtWidgets.QTextEdit):
             its contents, default False.
         """
         super().__init__(parent=parent)
-        if slot:
-            self.textChanged.connect(slot)
         if text is not None:
-            self.setPlainText(str(text))
+            self.setPlainText(text)
         if readonly:
             self.setReadOnly(True)
         if width:
@@ -2546,7 +2545,6 @@ class NXTextEdit(QtWidgets.QTextEdit):
             self.setAlignment(QtCore.Qt.AlignHCenter | QtCore.Qt.AlignVCenter)
         elif align == 'right':
             self.setAlignment(QtCore.Qt.AlignRight | QtCore.Qt.AlignVCenter)
-        self.setToolTip(self.toPlainText())
         self.setStyleSheet(
             "QTextEdit { background-color: white; padding: 2px; }")
         if autosize:
@@ -2557,8 +2555,10 @@ class NXTextEdit(QtWidgets.QTextEdit):
                 self.adjust_height)
         self.cursorPositionChanged.connect(self.handle_selection)
         self.highlighter = NXHighlighter(self)
-        self.selectionChanged.connect(self.highlighter.setSearchText)
         self.syntax_colors = False
+        self.selectionChanged.connect(self.highlighter.setSearchText)
+        if slot:
+            self.textChanged.connect(slot)
 
     def update_minimum_height(self):
         """Calculate height for one line of text including all margins"""
@@ -2584,6 +2584,15 @@ class NXTextEdit(QtWidgets.QTextEdit):
             self.selectionChanged.emit(selected)
         else:
             self.selectionChanged.emit("")
+
+    def setPlainText(self, text):
+        super().setPlainText(str(text))
+        self.setToolTip(self.toPlainText())
+        self.repaint()
+
+    def focusOutEvent(self, event):
+        super().focusOutEvent(event)
+        self.editingFinished.emit()
 
 
 class NXPlainTextEdit(QtWidgets.QPlainTextEdit):
