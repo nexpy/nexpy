@@ -31,6 +31,7 @@ from importlib.util import module_from_spec, spec_from_file_location
 from pathlib import Path
 from threading import Thread
 
+import dateparser
 import numpy as np
 from ansi2html import Ansi2HTMLConverter
 from IPython.core.ultratb import FormattedTB
@@ -417,6 +418,15 @@ def modification_time(filename):
         return str(datetime.fromtimestamp(_mtime))
     except FileNotFoundError:
         return ''
+
+
+def format_date(date):
+    """Format a string as an ISO8601 formatted string."""
+    formatted_date = dateparser.parse(date)
+    if formatted_date is not None:
+        return formatted_date.isoformat(timespec='seconds')
+    else:
+        raise NeXusError(f"Invalid date: {date}")
 
 
 def convertHTML(text, switch=False):

@@ -34,6 +34,7 @@ keywords = [
 requires-python = ">=3.9"
 dependencies = [
     "ansi2html",
+    "dateparser",
     "fabio",
     "h5py",
     "ipython",
