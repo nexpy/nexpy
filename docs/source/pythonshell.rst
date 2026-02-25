@@ -419,10 +419,10 @@ resulting NXdata group has ``temperature`` as an additional axis.
  >>> root['entry/scan_data'].nxsignal.__class__
  nexusformat.nexus.tree.NXvirtualfield
 
-.. note:: The virtual field is initially stored in a HDF5 core memory
-          file, but it should be saved to disk before further access.
-          Mapping data in virtual fields to the original files is both
-          slow and memory intensive using the HDF5 core driver.
+.. warning:: The virtual field is initially stored in a HDF5 core memory
+             file, but it should be saved to disk before further access.
+             Mapping data in virtual fields to the original files is
+             both slow and memory intensive using the HDF5 core driver.
 
 
 NeXus Groups
