@@ -152,6 +152,18 @@ necessary, a backup of the file can be made using the
 <p class="admonition-title">See also</p>
 <p><a class="reference internal" href="treeapi.html#nexusformat.nexus.tree.NXroot.backup" title="nexusformat.nexus.tree.NXroot.backup"><code class="xref py py-mod docutils literal notranslate"><span class="pre">nexusformat.nexus.tree.NXroot.backup</span></code></a></p>
 </div>
+<p>A context manager can be used to allow multiple read/write operations to be performed on the file before it is closed. Otherwise, the file is automatically opened and closed for each operation.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">nxopen</span><span class="p">(</span><span class="s1">&#39;nexus_file.nxs&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">root</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXsample</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/sample/temperature&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="mf">40.0</span><span class="p">,</span> <span class="n">units</span><span class="o">=</span><span class="s1">&#39;K&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p><code class="docutils literal notranslate"><span class="pre">nxopen</span></code> is a synonym for <code class="docutils literal notranslate"><span class="pre">nxload</span></code>. See <a class="reference internal" href="#multiple-operations">Multiple
+Operations</a> for more details.</p>
+</div>
 </div>
 <div class="section" id="creating-nexus-data">
 <h2>Creating NeXus Data<a class="headerlink" href="#creating-nexus-data" title="Permalink to this headline">¶</a></h2>
@@ -475,8 +487,8 @@ resulting NXdata group has <code class="docutils literal notranslate"><span clas
 <span class="gp">&gt;&gt;&gt; </span><span class="n">data_path</span> <span class="o">=</span> <span class="s1">&#39;/entry/data&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">scan_path</span> <span class="o">=</span> <span class="s1">&#39;/entry/sample/temperature&#39;</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">nxopen</span><span class="p">(</span><span class="s1">&#39;scan.nxs&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">root</span><span class="p">:</span>
-<span class="go">        scan_data = nxconsolidate(scan_files, data_path, scan_path)</span>
-<span class="go">        root[&#39;entry&#39;] = NXentry(scan_data=scan_data)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">scan_data</span> <span class="o">=</span> <span class="n">nxconsolidate</span><span class="p">(</span><span class="n">scan_files</span><span class="p">,</span> <span class="n">data_path</span><span class="p">,</span> <span class="n">scan_path</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">NXentry</span><span class="p">(</span><span class="n">scan_data</span><span class="o">=</span><span class="n">scan_data</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/scan_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
 <span class="go">scan_data:NXdata</span>
 <span class="go"> @axes = [&#39;temperature&#39;, &#39;Qk&#39;, &#39;Qh&#39;]</span>
@@ -488,11 +500,6 @@ resulting NXdata group has <code class="docutils literal notranslate"><span clas
 <span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/scan_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nxsignal</span><span class="o">.</span><span class="vm">__class__</span>
 <span class="go">nexusformat.nexus.tree.NXvirtualfield</span>
 </pre></div>
-</div>
-<div class="admonition seealso">
-<p class="admonition-title">See also</p>
-<p>See <a class="reference internal" href="#multiple-operations">Multiple Operations</a> for a description of the use of
-context managers when writing to a NeXus file.</p>
 </div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>

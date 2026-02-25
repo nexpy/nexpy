@@ -106,6 +106,16 @@ but once open, the mode values are stored as 'r' or 'rw'.
 
 .. seealso:: :mod:`nexusformat.nexus.tree.NXroot.backup`
 
+A context manager can be used to allow multiple read/write operations to be performed on the file before it is closed. Otherwise, the file is automatically opened and closed for each operation.
+
+ >>> with nxopen('nexus_file.nxs', 'w') as root:
+ >>>     root['entry'] = NXentry()
+ >>>     root['entry/sample'] = NXsample()
+ >>>     root['entry/sample/temperature'] = NXfield(40.0, units='K')
+
+.. seealso:: ``nxopen`` is a synonym for ``nxload``. See `Multiple
+             Operations`_ for more details.
+
 Creating NeXus Data
 ===================
 It is just as easy to create new NeXus data sets from scratch using
@@ -406,8 +416,8 @@ resulting NXdata group has ``temperature`` as an additional axis.
  >>> data_path = '/entry/data'
  >>> scan_path = '/entry/sample/temperature'
  >>> with nxopen('scan.nxs', 'w') as root:
-         scan_data = nxconsolidate(scan_files, data_path, scan_path)
-         root['entry'] = NXentry(scan_data=scan_data)
+ >>>     scan_data = nxconsolidate(scan_files, data_path, scan_path)
+ >>>     root['entry'] = NXentry(scan_data=scan_data)
  >>> print(root['entry/scan_data'].tree)
  scan_data:NXdata
   @axes = ['temperature', 'Qk', 'Qh']
@@ -418,9 +428,6 @@ resulting NXdata group has ``temperature`` as an additional axis.
   temperature = float64(6)
  >>> root['entry/scan_data'].nxsignal.__class__
  nexusformat.nexus.tree.NXvirtualfield
-
-.. seealso:: See `Multiple Operations`_ for a description of the use of
-             context managers when writing to a NeXus file.
 
 .. warning:: The virtual field is initially stored in a HDF5 core memory
              file, but it should be saved to disk before further access.
