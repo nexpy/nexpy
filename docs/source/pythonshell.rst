@@ -419,6 +419,9 @@ resulting NXdata group has ``temperature`` as an additional axis.
  >>> root['entry/scan_data'].nxsignal.__class__
  nexusformat.nexus.tree.NXvirtualfield
 
+.. seealso:: See `Multiple Operations`_ for a description of the use of
+             context managers when writing to a NeXus file.
+
 .. warning:: The virtual field is initially stored in a HDF5 core memory
              file, but it should be saved to disk before further access.
              Mapping data in virtual fields to the original files is
@@ -1200,17 +1203,18 @@ open/close operations::
 The file will be opened at the start of the of the ``with`` clause and
 closed automatically at the end.
 
-.. note:: This context manager can be nested so it is safe to add a ``with``
-          clause within a function that might, in some implementations, be
-          embedded in another ``with`` clause. The file is only closed when the
-          outermost context manager is exited.
+.. note:: This context manager can be nested so it is safe to add a
+          ``with`` clause within a function that might, in some
+          implementations, be embedded in another ``with`` clause. The
+          file is only closed when the outermost context manager is
+          exited.
 
-In v0.7.7, the ability to use a context manager directly with ``NXroot``
-objects, rather than its associated ``NXfile``, was added. This allows
-the use of a similar syntax to the Python ``open`` function, in which a
-``with`` clause ensuring that the file is opened and closed, before and
-after the file access, respectively. To make this analogy clearer,
-``nxopen`` was added as an alias to ``nxload``.
+Alternatively, it is possible to use a context manager directly with
+``NXroot`` objects, rather than its associated ``NXfile``.
+This allows the use of a similar syntax to the Python ``open`` function,
+in which a ``with`` clause ensuring that the file is opened and closed,
+before and after the file access, respectively. To make this analogy
+clearer, ``nxopen`` was added as an alias to ``nxload``.
 
 In the following code, a NeXus file is created, filled with NeXus
 objects and then closed.
