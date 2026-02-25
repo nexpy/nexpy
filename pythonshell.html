@@ -489,6 +489,11 @@ resulting NXdata group has <code class="docutils literal notranslate"><span clas
 <span class="go">nexusformat.nexus.tree.NXvirtualfield</span>
 </pre></div>
 </div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<p>See <a class="reference internal" href="#multiple-operations">Multiple Operations</a> for a description of the use of
+context managers when writing to a NeXus file.</p>
+</div>
 <div class="admonition warning">
 <p class="admonition-title">Warning</p>
 <p>The virtual field is initially stored in a HDF5 core memory
@@ -1331,17 +1336,18 @@ open/close operations:</p>
 closed automatically at the end.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>This context manager can be nested so it is safe to add a <code class="docutils literal notranslate"><span class="pre">with</span></code>
-clause within a function that might, in some implementations, be
-embedded in another <code class="docutils literal notranslate"><span class="pre">with</span></code> clause. The file is only closed when the
-outermost context manager is exited.</p>
+<p>This context manager can be nested so it is safe to add a
+<code class="docutils literal notranslate"><span class="pre">with</span></code> clause within a function that might, in some
+implementations, be embedded in another <code class="docutils literal notranslate"><span class="pre">with</span></code> clause. The
+file is only closed when the outermost context manager is
+exited.</p>
 </div>
-<p>In v0.7.7, the ability to use a context manager directly with <code class="docutils literal notranslate"><span class="pre">NXroot</span></code>
-objects, rather than its associated <code class="docutils literal notranslate"><span class="pre">NXfile</span></code>, was added. This allows
-the use of a similar syntax to the Python <code class="docutils literal notranslate"><span class="pre">open</span></code> function, in which a
-<code class="docutils literal notranslate"><span class="pre">with</span></code> clause ensuring that the file is opened and closed, before and
-after the file access, respectively. To make this analogy clearer,
-<code class="docutils literal notranslate"><span class="pre">nxopen</span></code> was added as an alias to <code class="docutils literal notranslate"><span class="pre">nxload</span></code>.</p>
+<p>Alternatively, it is possible to use a context manager directly with
+<code class="docutils literal notranslate"><span class="pre">NXroot</span></code> objects, rather than its associated <code class="docutils literal notranslate"><span class="pre">NXfile</span></code>.
+This allows the use of a similar syntax to the Python <code class="docutils literal notranslate"><span class="pre">open</span></code> function,
+in which a <code class="docutils literal notranslate"><span class="pre">with</span></code> clause ensuring that the file is opened and closed,
+before and after the file access, respectively. To make this analogy
+clearer, <code class="docutils literal notranslate"><span class="pre">nxopen</span></code> was added as an alias to <code class="docutils literal notranslate"><span class="pre">nxload</span></code>.</p>
 <p>In the following code, a NeXus file is created, filled with NeXus
 objects and then closed.</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">nxopen</span><span class="p">(</span><span class="s1">&#39;nexus_file.nxs&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">root</span><span class="p">:</span>
