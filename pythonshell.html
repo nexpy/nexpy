@@ -452,10 +452,49 @@ This is normally set to zero by default.</p>
 <p>All these values can be adjusted at the command line until the first
 slab has been written, whether to a file or in core memory, using the
 <code class="docutils literal notranslate"><span class="pre">compression</span></code>, <code class="docutils literal notranslate"><span class="pre">chunks</span></code>, <code class="docutils literal notranslate"><span class="pre">maxshape</span></code> or <code class="docutils literal notranslate"><span class="pre">fillvalue</span></code> properties,
-<em>e.g.</em></p>
+<em>e.g.</em>,</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">z</span> <span class="o">=</span> <span class="n">NXfield</span><span class="p">(</span><span class="n">shape</span><span class="o">=</span><span class="p">(</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">,</span><span class="mi">1000</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float32</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">z</span><span class="o">.</span><span class="n">compression</span> <span class="o">=</span> <span class="s1">&#39;lzf&#39;</span>
 </pre></div>
+</div>
+</div>
+<div class="section" id="virtual-fields">
+<h4>Virtual Fields<a class="headerlink" href="#virtual-fields" title="Permalink to this headline">¶</a></h4>
+<p>Virtual fields contain data arrays assembled from entire arrays or slabs
+stored in multiple NeXus or HDF5 files. They are implemented as HDF5
+virtual datasets, which contain pointers to the files and the paths
+within those files, so that the composite array can be treated as a
+single array for extracting slabs, <em>e.g.</em>, for plotting.</p>
+<p>In the <em>nexusformat</em> package, virtual fields are used to add an extra dimension to multidimensional fields stored in each file, whose size is equal to the number of files. If there is a scalar field that corresponds to a measurement parameter, such as temperature, that is changing in each file, a NXdata group can be created, using the <code class="docutils literal notranslate"><span class="pre">nxconsolidate</span></code> function, in which the parameter values define the axis of the extra dimension.</p>
+<p>In the following example, each NeXus file contains a NXdata group with a
+signal of shape (1000, 1000) and a scalar field containing the
+temperature value. After creating the virtual field by combining all six
+files, the resulting signal has a shape of (6, 1000, 1000). The
+resulting NXdata group has <code class="docutils literal notranslate"><span class="pre">temperature</span></code> as an additional axis.</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scan_files</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s1">&#39;scan_</span><span class="si">{T}</span><span class="s1">K.nxs&#39;</span> <span class="k">for</span> <span class="n">T</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">300</span><span class="p">,</span> <span class="mi">50</span><span class="p">)]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data_path</span> <span class="o">=</span> <span class="s1">&#39;/entry/data&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scan_path</span> <span class="o">=</span> <span class="s1">&#39;/entry/sample/temperature&#39;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">with</span> <span class="n">nxopen</span><span class="p">(</span><span class="s1">&#39;scan.nxs&#39;</span><span class="p">,</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">root</span><span class="p">:</span>
+<span class="go">        scan_data = nxconsolidate(scan_files, data_path, scan_path)</span>
+<span class="go">        root[&#39;entry&#39;] = NXentry(scan_data=scan_data)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/scan_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">tree</span><span class="p">)</span>
+<span class="go">scan_data:NXdata</span>
+<span class="go"> @axes = [&#39;temperature&#39;, &#39;Qk&#39;, &#39;Qh&#39;]</span>
+<span class="go"> @signal = &#39;data&#39;</span>
+<span class="go"> Qh = float64(1000)</span>
+<span class="go"> Qk = float64(1000)</span>
+<span class="go"> data = float64(6x1000x1000)</span>
+<span class="go"> temperature = float64(6)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">root</span><span class="p">[</span><span class="s1">&#39;entry/scan_data&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">nxsignal</span><span class="o">.</span><span class="vm">__class__</span>
+<span class="go">nexusformat.nexus.tree.NXvirtualfield</span>
+</pre></div>
+</div>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The virtual field is initially stored in a HDF5 core memory
+file, but it should be saved to disk before further access.
+Mapping data in virtual fields to the original files is both
+slow and memory intensive using the HDF5 core driver.</p>
 </div>
 </div>
 </div>
@@ -1531,6 +1570,7 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 <li><a class="reference internal" href="#nexus-attributes">NeXus attributes</a></li>
 <li><a class="reference internal" href="#masked-arrays">Masked Arrays</a></li>
 <li><a class="reference internal" href="#large-arrays">Large Arrays</a></li>
+<li><a class="reference internal" href="#virtual-fields">Virtual Fields</a></li>
 </ul>
 </li>
 <li><a class="reference internal" href="#nexus-groups">NeXus Groups</a><ul>
