@@ -113,7 +113,7 @@ A context manager can be used to allow multiple read/write operations to be perf
  >>>     root['entry/sample'] = NXsample()
  >>>     root['entry/sample/temperature'] = NXfield(40.0, units='K')
 
-.. seealso:: ``nxopen`` is a synonym for ``nxload``. See `Multiple
+.. seealso:: ``nxopen`` is an alias for ``nxload``. See `Multiple
              Operations`_ for more details.
 
 Creating NeXus Data
