@@ -4006,6 +4006,7 @@ class ViewTab(NXTab):
 
         if isinstance(node, NXgroup):
             self.group = node
+            from nexusformat.nexus.validate import GroupValidator
             self.validator = GroupValidator(self.group.nxclass)
             field_list = [f for f in self.group.NXfield
                           if f.ndim == 0 or (f.ndim == 1 and f.shape[0] == 1)]
