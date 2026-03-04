@@ -16,7 +16,6 @@ from nexusformat.nexus import (NeXusError, NXattr, NXdata, NXentry, NXfield,
                                NXgroup, NXlink, NXroot, NXvirtualfield,
                                nxconsolidate, nxgetconfig, nxload, nxsetconfig)
 from nexusformat.nexus.utils import all_dtypes, map_dtype
-from nexusformat.nexus.validate import GroupValidator
 
 from .pyqt import QtCore, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (convertHTML, display_message, fix_projection, format_date,
@@ -4006,6 +4005,7 @@ class ViewTab(NXTab):
 
         if isinstance(node, NXgroup):
             self.group = node
+            from nexusformat.nexus.validate import GroupValidator
             self.validator = GroupValidator(self.group.nxclass)
             field_list = [f for f in self.group.NXfield
                           if f.ndim == 0 or (f.ndim == 1 and f.shape[0] == 1)]
@@ -4598,8 +4598,12 @@ class ValidateTab(NXTab):
         Shows the validation log. Called by the validation actions to
         show the results of the validation action.
         """
-        handler = logging.getLogger('NXValidate').handlers[0]
-        self.text_box.setText(convertHTML(handler.flush()))
+        try:
+            handler = logging.getLogger('NXValidate').handlers[0]
+            text = handler.flush()
+            self.text_box.setText(convertHTML(text))
+        except Exception:
+            pass
         self.setVisible(True)
         self.raise_()
         self.activateWindow()
