@@ -25,7 +25,7 @@ from pygments.token import Token
 from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName
 from .utils import (boundaries, confirm_action, display_message, find_nearest,
                     format_float, get_color, get_mainwindow, in_dark_mode,
-                    natural_sort, report_error)
+                    list_directory, natural_sort, report_error)
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 
@@ -680,7 +680,8 @@ class NXWidgetMixin:
             directory = Path(self.get_directory())
         if not extension.startswith('.'):
             extension = '.'+extension
-        return sorted(directory.glob(prefix+'*'+extension), key=natural_sort)
+        return sorted(list_directory(directory, pattern=prefix+'*'+extension),
+                      key=natural_sort)
 
     def select_box(self, choices, default=None, slot=None):
         """

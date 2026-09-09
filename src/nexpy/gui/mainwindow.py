@@ -14,6 +14,7 @@ namespace of the console includes the NeXus data loaded into the tree.
 """
 
 import logging
+import os
 import sys
 import webbrowser
 from operator import attrgetter
@@ -39,9 +40,9 @@ from .pyqt import QtCore, QtGui, QtWidgets, getOpenFileName, getSaveFileName
 from .scripteditor import NXScriptWindow
 from .treeview import NXTreeView
 from .utils import (confirm_action, define_mode, display_message, get_colors,
-                    get_name, is_file_locked, load_image, load_plugin,
-                    load_readers, natural_sort, package_files, report_error,
-                    timestamp)
+                    get_name, is_file_locked, list_directory, load_image,
+                    load_plugin, load_readers, natural_sort, package_files,
+                    report_error, timestamp)
 
 
 class NXRichJupyterWidget(RichJupyterWidget):
@@ -78,6 +79,8 @@ class NXRichJupyterWidget(RichJupyterWidget):
 
 
 class MainWindow(QtWidgets.QMainWindow):
+
+    max_script_depth = 10
 
     def __init__(self, app, tree, settings, config):
         """ Create a MainWindow for the application.
@@ -825,9 +828,9 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.script_menu.addSeparator()
 
-        if self.settings.has_option('settings', 'scriptdirectory'):
-            self.public_script_dir = self.settings.get('settings',
-                                                       'scriptdirectory')
+        self.public_script_dir = self.settings.get('settings',
+                                                   'scriptdirectory',
+                                                   fallback=None)
 
         self.public_script_menu = QtWidgets.QMenu('Public Scripts', self)
         self.script_menu.addMenu(self.public_script_menu)
@@ -928,7 +931,7 @@ class MainWindow(QtWidgets.QMainWindow):
         """Add an import menu item for every module in the readers directory"""
         self.import_menu = QtWidgets.QMenu("Import", self)
         self.file_menu.addMenu(self.import_menu)
-        readers = load_readers()
+        readers = load_readers(directory=self.reader_dir)
         self.readers = {}
         for reader in readers:
             try:
@@ -1065,7 +1068,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 raise NeXusError("No NeXus files found in directory")
             dialog = DirectoryDialog(nxfiles, directory, parent=self)
             dialog.show()
-        except NeXusError as error:
+        except (NeXusError, OSError) as error:
             report_error("Opening Directory", error)
 
     def hover_recent_menu(self, action):
@@ -1393,7 +1396,7 @@ class MainWindow(QtWidgets.QMainWindow):
                 raise NeXusError(f"{node.nxfilename} does not exist")
             if isinstance(node, NXroot):
                 dir = self.nexpy_dir.joinpath('backups', timestamp())
-                dir.mkdir()
+                dir.mkdir(parents=True, exist_ok=True)
                 node.backup(dir=dir)
                 self.settings.set('backups', node.nxbackup)
                 self.settings.save()
@@ -1404,7 +1407,7 @@ class MainWindow(QtWidgets.QMainWindow):
                     f"'{node.nxbackup}'")
             else:
                 raise NeXusError("Can only backup a NXroot group")
-        except NeXusError as error:
+        except (NeXusError, OSError) as error:
             report_error("Backing Up File", error)
 
     def restore_file(self):
@@ -1791,7 +1794,9 @@ class MainWindow(QtWidgets.QMainWindow):
             The copied node.
         """
         import tempfile
-        self._memroot = nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w',
+        fd, memroot_file = tempfile.mkstemp(suffix='.nxs')
+        os.close(fd)
+        self._memroot = nxload(memroot_file, mode='w',
                                driver='core', backing_store=False)
         self._memroot['entry'] = NXentry()
         if isinstance(node, NXlink):
@@ -2512,7 +2517,7 @@ class MainWindow(QtWidgets.QMainWindow):
         except NeXusError as error:
             report_error("Opening Script", error)
 
-    def add_script_directory(self, directory, menu):
+    def add_script_directory(self, directory, menu, visited=None, depth=0):
         """
         Recursively add actions for Python scripts in directory to the
         provided menu.
@@ -2523,12 +2528,35 @@ class MainWindow(QtWidgets.QMainWindow):
             The directory to search for Python scripts.
         menu : QMenu
             The menu to add the actions to.
+        visited : set, optional
+            Resolved paths of directories already scanned, used to stop
+            symbolic links and Windows junctions from causing infinite
+            recursion.
+        depth : int, optional
+            Current recursion depth, by default 0.
         """
-        if directory is None or not Path(directory).is_dir():
+        # An unset script directory is stored as None or an empty
+        # string. Path('') is the current working directory, so an empty
+        # string would otherwise scan the whole directory tree from
+        # wherever NeXpy happened to be launched.
+        if directory is None or str(directory).strip() == '':
+            menu.setEnabled(False)
+            return
+        if not Path(directory).is_dir():
             menu.setEnabled(False)
             return
         directory = Path(directory)
-        names = sorted(path.name for path in directory.iterdir())
+        if visited is None:
+            visited = set()
+        try:
+            resolved_directory = directory.resolve()
+        except OSError:
+            resolved_directory = directory
+        if depth > self.max_script_depth or resolved_directory in visited:
+            menu.setEnabled(False)
+            return
+        visited.add(resolved_directory)
+        names = sorted(path.name for path in list_directory(directory))
         empty_directory = True
         for name in names:
             item_path = directory / name
@@ -2537,7 +2565,8 @@ class MainWindow(QtWidgets.QMainWindow):
             if item_path.is_dir():
                 submenu = QtWidgets.QMenu(name, self)
                 menu.addMenu(submenu)
-                self.add_script_directory(item_path, submenu)
+                self.add_script_directory(item_path, submenu, visited=visited,
+                                          depth=depth+1)
             elif item_path.suffix == '.py':
                 self.add_script_action(item_path, menu)
                 empty_directory = False

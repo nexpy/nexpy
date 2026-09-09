@@ -6,6 +6,7 @@
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
 import logging
+import os
 from pathlib import Path
 
 import matplotlib as mpl
@@ -20,8 +21,8 @@ from nexusformat.nexus.utils import all_dtypes, map_dtype
 from .pyqt import QtCore, QtWidgets, getOpenFileName, getSaveFileName
 from .utils import (convertHTML, display_message, fix_projection, format_date,
                     format_mtime, format_timestamp, get_color, get_mtime,
-                    human_size, keep_data, load_plugin, natural_sort,
-                    report_error, set_style, timestamp, wrap)
+                    human_size, keep_data, list_directory, load_plugin,
+                    natural_sort, report_error, set_style, timestamp, wrap)
 from .widgets import (GridParameters, NXCheckBox, NXComboBox, NXDialog,
                       NXDoubleSpinBox, NXHierarchicalComboBox, NXLabel,
                       NXLineEdit, NXPanel, NXPlainTextEdit, NXpolygon,
@@ -1032,10 +1033,10 @@ class LockDialog(NXDialog):
         The text box is cleared if there are no locked files.
         """
         text = []
-        for f in sorted(self.lockdirectory.iterdir(), key=get_mtime):
+        for f in sorted(list_directory(self.lockdirectory), key=get_mtime):
             if f.suffix == '.lock':
                 name = self.convert_name(f.name)
-                text.append(f'{format_mtime(f.stat().st_mtime)} {name}')
+                text.append(f'{format_mtime(get_mtime(f))} {name}')
         if text:
             self.text_box.setPlainText('\n'.join(text))
         else:
@@ -1054,7 +1055,7 @@ class LockDialog(NXDialog):
         """
         dialog = NXDialog(parent=self)
         locks = []
-        for f in sorted(self.lockdirectory.iterdir(), key=get_mtime):
+        for f in sorted(list_directory(self.lockdirectory), key=get_mtime):
             if f.suffix == '.lock':
                 name = self.convert_name(f.name)
                 locks.append(self.checkboxes((f.name, name, False),
@@ -1088,6 +1089,11 @@ class LockDialog(NXDialog):
                     lock_path.unlink()
                 except FileNotFoundError:
                     pass
+                except OSError as error:
+                    # On Windows, the lock file cannot be removed while
+                    # the process that created it still has it open.
+                    logging.warning(f"Unable to clear the lock file "
+                                    f"'{lock_path}': {error}")
                 del self.checkbox[f]
         self.locks_dialog.close()
         self.show_locks()
@@ -1159,8 +1165,14 @@ class SettingsDialog(NXDialog):
                                      cfg['lockexpiry'])
         self.mainwindow.settings.set('settings', 'lockdirectory',
                                      cfg['lockdirectory'])
+        # A blank entry means that no public script directory has been
+        # defined. It must be stored as None, because Path('') is the
+        # current working directory.
+        script_directory = self.parameters['scriptdirectory'].value
+        if not str(script_directory or '').strip():
+            script_directory = None
         self.mainwindow.settings.set('settings', 'scriptdirectory',
-                                     self.parameters['scriptdirectory'].value)
+                                     script_directory)
         self.mainwindow.settings.set('settings', 'definitions',
                                      cfg['definitions'])
         self.mainwindow.settings.set('settings', 'recursive',
@@ -3653,7 +3665,9 @@ class ScanTab(NXTab):
         except Exception:
             pass
         import tempfile
-        with nxload(tempfile.mkstemp(suffix='.nxs')[1], mode='w') as root:
+        fd, scan_file = tempfile.mkstemp(suffix='.nxs')
+        os.close(fd)
+        with nxload(scan_file, mode='w') as root:
             root['data'] = self.scan_data
         self.scan_root = root
 
@@ -5692,7 +5706,7 @@ class UnlockDialog(NXDialog):
         try:
             if self.checkbox['backup'].isChecked():
                 dir = self.mainwindow.backup_dir / timestamp()
-                dir.mkdir()
+                dir.mkdir(parents=True, exist_ok=True)
                 self.node.backup(dir=dir)
                 self.mainwindow.settings.set('backups', self.node.nxbackup)
                 self.mainwindow.settings.save()
@@ -5702,7 +5716,7 @@ class UnlockDialog(NXDialog):
             self.node.unlock()
             logging.info(f"Workspace '{self.node.nxname}' unlocked")
             super().accept()
-        except NeXusError as error:
+        except (NeXusError, OSError) as error:
             report_error("Unlocking file", error)
 
 
@@ -5746,7 +5760,10 @@ class ManageBackupsDialog(NXDialog):
         for backup in backups:
             date = format_timestamp(backup.parent.name)
             name = self.get_name(backup)
-            size = backup.stat().st_size
+            try:
+                size = backup.stat().st_size
+            except OSError:
+                size = 0
             items.append(
                 self.checkboxes((str(backup),
                                  f"{date}: {name} ({human_size(size)})",
@@ -5805,8 +5822,12 @@ class ManageBackupsDialog(NXDialog):
                     backup_path = Path(backup).resolve()
                     if backup_path.exists() and (
                             self.backup_dir in backup_path.parents):
-                        backup_path.unlink()
-                        backup_path.parent.rmdir()
+                        try:
+                            backup_path.unlink()
+                            backup_path.parent.rmdir()
+                        except OSError as error:
+                            report_error("Deleting Backups", error)
+                            continue
                         self.mainwindow.settings.remove_option('backups',
                                                                str(backup))
                     self.checkbox[backup].setChecked(False)
