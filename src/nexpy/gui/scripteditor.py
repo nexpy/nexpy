@@ -1,17 +1,43 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2014-2025, NeXpy Development Team.
+# Copyright (c) 2014-2026, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
+import atexit
+import os
 import tempfile
 from pathlib import Path
 
 from .pyqt import QtCore, QtGui, QtWidgets, getSaveFileName
-from .utils import confirm_action, in_dark_mode
+from .utils import confirm_action, in_dark_mode, report_error
 from .widgets import (NXHighlighter, NXLineEdit, NXPanel, NXPlainTextEdit,
                       NXPushButton, NXTab)
+
+_temporary_scripts = []
+
+
+def remove_temporary_scripts():
+    """
+    Remove temporary scripts created when running scripts with arguments.
+
+    On Windows, a script cannot be removed while the console process
+    still has it open, so any file that cannot be removed is left in the
+    list and removed by a later call or when NeXpy exits.
+    """
+    for file_name in _temporary_scripts[:]:
+        try:
+            Path(file_name).unlink()
+        except FileNotFoundError:
+            _temporary_scripts.remove(file_name)
+        except OSError:
+            pass
+        else:
+            _temporary_scripts.remove(file_name)
+
+
+atexit.register(remove_temporary_scripts)
 
 
 class NXScrollBar(QtWidgets.QScrollBar):
@@ -241,12 +267,15 @@ class NXScriptEditor(NXTab):
         """
         text = self.get_text()
         if 'sys.argv' in text:
-            file_name = tempfile.mkstemp('.py')[1]
+            remove_temporary_scripts()
+            fd, file_name = tempfile.mkstemp('.py')
+            os.close(fd)
             with open(file_name, 'w') as f:
                 f.write(self.get_text())
             args = self.argument_box.text()
             self.mainwindow.console.execute(f'run -i {file_name} {args}')
-            Path(file_name).unlink()
+            _temporary_scripts.append(file_name)
+            remove_temporary_scripts()
         else:
             self.mainwindow.console.execute(self.get_text())
 
@@ -305,6 +334,10 @@ class NXScriptEditor(NXTab):
             if confirm_action(
                     f"Are you sure you want to delete '{self.file_name}'?",
                     "This cannot be reversed"):
-                Path(self.file_name).unlink()
+                try:
+                    Path(self.file_name).unlink()
+                except OSError as error:
+                    report_error("Deleting Script", error)
+                    return
                 self.mainwindow.refresh_script_menus()
                 self.panel.close()

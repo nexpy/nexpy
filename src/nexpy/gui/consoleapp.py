@@ -30,8 +30,9 @@ from .mainwindow import MainWindow
 from .pyqt import QtCore, QtGui, QtVersion, QtWidgets
 from .treeview import NXtree
 from .utils import (NXConfigParser, NXGarbageCollector, NXLogger, define_mode,
-                    entry_points, initialize_settings, report_exception,
-                    resource_icon, timestamp_age)
+                    display_message, entry_points, initialize_settings,
+                    list_directory, report_exception, resource_icon,
+                    timestamp_age)
 
 
 _mainwindow = None
@@ -48,17 +49,37 @@ class NXConsoleApp(JupyterQtConsoleApp):
         user's home directory as ~/.nexpy. If the user does not have
         write access to the home directory, a temporary directory is
         created instead.
+
+        The directories are created without checking permissions in
+        advance, because `os.access` does not reflect access control
+        lists on Windows and can report a directory as writable when it
+        is not.
         """
+        subdirectories = ['backups', 'models', 'plugins', 'readers',
+                          'scripts']
+
+        def make_directories(nexpy_dir):
+            """Create the directory tree, returning True if successful."""
+            try:
+                nexpy_dir.mkdir(parents=True, exist_ok=True)
+                for subdirectory in subdirectories:
+                    (nexpy_dir / subdirectory).mkdir(exist_ok=True)
+            except OSError:
+                return False
+            return True
+
         nexpy_dir = Path.home() / '.nexpy'
-        if not nexpy_dir.exists():
-            if not os.access(Path.home(), os.W_OK):
-                nexpy_dir = tempfile.mkdtemp()
-            else:
-                nexpy_dir.mkdir(exist_ok=True)
-        for subdirectory in ['backups', 'models', 'plugins', 'readers',
-                             'scripts']:
-            directory = nexpy_dir / subdirectory
-            directory.mkdir(exist_ok=True)
+        self.dir_warning = None
+        if not make_directories(nexpy_dir):
+            temporary_dir = Path(tempfile.mkdtemp())
+            self.dir_warning = (
+                f"Unable to use '{nexpy_dir}'. NeXpy settings, scripts, and "
+                f"backups will be stored in '{temporary_dir}' and will be "
+                "lost when this session ends.")
+            if not make_directories(temporary_dir):
+                raise OSError(f"Unable to create the NeXpy directory tree in "
+                              f"either '{nexpy_dir}' or '{temporary_dir}'")
+            nexpy_dir = temporary_dir
         self.nexpy_dir = nexpy_dir
         self.backup_dir = self.nexpy_dir / 'backups'
         self.model_dir = self.nexpy_dir / 'models'
@@ -67,7 +88,12 @@ class NXConsoleApp(JupyterQtConsoleApp):
         self.script_dir = self.nexpy_dir / 'scripts'
         self.scratch_file = self.nexpy_dir / 'w0.nxs'
         if not self.scratch_file.exists():
-            NXroot().save(self.scratch_file)
+            try:
+                NXroot().save(self.scratch_file)
+            except Exception as error:
+                self.dir_warning = (
+                    f"Unable to create the scratch file "
+                    f"'{self.scratch_file}': {error}")
 
     def init_settings(self):
         """
@@ -112,9 +138,16 @@ class NXConsoleApp(JupyterQtConsoleApp):
         is set to 'DEBUG', 'INFO', 'WARNING', 'ERROR', or 'CRITICAL'.
         """
         log_file = self.nexpy_dir / 'nexpy.log'
-        handler = logging.handlers.RotatingFileHandler(log_file,
-                                                       maxBytes=50000,
-                                                       backupCount=5)
+        try:
+            handler = logging.handlers.RotatingFileHandler(log_file,
+                                                           maxBytes=50000,
+                                                           backupCount=5)
+        except OSError as error:
+            handler = logging.StreamHandler()
+            self.log_warning = (f"Unable to open the log file '{log_file}': "
+                                f"{error}")
+        else:
+            self.log_warning = None
         formatter = logging.Formatter(
             fmt='%(asctime)s - %(levelname)s - %(message)s',
             datefmt='%Y-%m-%d %H:%M:%S')
@@ -145,6 +178,10 @@ class NXConsoleApp(JupyterQtConsoleApp):
         logging.info('h5py v' + h5py_version)
         logging.info('NeXpy v' + nexpy_version)
         logging.info('nexusformat v' + nxversion)
+        if self.log_warning:
+            logging.warning(self.log_warning)
+        if self.dir_warning:
+            logging.warning(self.dir_warning)
         sys.stdout = sys.stderr = NXLogger()
 
     def init_plugins(self):
@@ -160,7 +197,7 @@ class NXConsoleApp(JupyterQtConsoleApp):
         eps = entry_points()
         plugin = None
         plugins = self.settings.options('plugins')
-        for path in self.plugin_dir.iterdir():
+        for path in list_directory(self.plugin_dir):
             if (path.is_dir() and not (path.name.startswith('_') or
                                        path.name.startswith('.'))):
                 plugin  = str(path)
@@ -245,11 +282,16 @@ class NXConsoleApp(JupyterQtConsoleApp):
                           "from matplotlib import pylab, mlab, pyplot\n",
                           "plt = pyplot\n"]
         config_file = self.nexpy_dir / 'config.py'
-        if not config_file.exists():
-            with open(config_file, 'w') as f:
-                f.writelines(default_script)
-        with open(config_file) as f:
-            s = f.readlines()
+        try:
+            if not config_file.exists():
+                with open(config_file, 'w') as f:
+                    f.writelines(default_script)
+            with open(config_file) as f:
+                s = f.readlines()
+        except OSError as error:
+            logging.warning(f"Unable to read the startup script "
+                            f"'{config_file}': {error}")
+            s = default_script
         try:
             exec('\n'.join(s), self.window.user_ns)
         except Exception:
@@ -312,6 +354,9 @@ class NXConsoleApp(JupyterQtConsoleApp):
         self.init_shell(args)
         self.init_mode()
         self.init_signal()
+        if self.dir_warning:
+            display_message("NeXpy directory is not writable",
+                            self.dir_warning)
 
     def start(self):
         """

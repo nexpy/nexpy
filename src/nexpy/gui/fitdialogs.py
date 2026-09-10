@@ -1,5 +1,5 @@
 # -----------------------------------------------------------------------------
-# Copyright (c) 2015-2025, NeXpy Development Team.
+# Copyright (c) 2015-2026, NeXpy Development Team.
 #
 # Distributed under the terms of the Modified BSD License.
 #
@@ -17,7 +17,8 @@ from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXnote,
 
 from .plotview import NXPlotView, linestyles
 from .pyqt import QtCore, QtWidgets
-from .utils import display_message, format_float, load_models, report_error
+from .utils import (display_message, format_float, get_mainwindow,
+                    load_models, report_error)
 from .widgets import (NXCheckBox, NXColorBox, NXComboBox, NXDialog, NXLabel,
                       NXLineEdit, NXMessageBox, NXPanel, NXPushButton,
                       NXrectangle, NXScrollArea, NXTab)
@@ -42,7 +43,9 @@ def get_models():
     if 'Gaussian-2D' in models:
         del models['Gaussian-2D']
 
-    nexpy_models = load_models()
+    mainwindow = get_mainwindow()
+    nexpy_models = load_models(
+        directory=mainwindow.model_dir if mainwindow else None)
 
     for model in nexpy_models:
         try:

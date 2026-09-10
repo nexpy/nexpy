@@ -403,7 +403,7 @@ def get_mtime(file_path):
     """Return the file modification time for the specified file path."""
     try:
         return Path(file_path).stat().st_mtime
-    except FileNotFoundError:  # due to a race condition
+    except OSError:  # due to a race condition or inaccessible file
         return 0.0
 
 
@@ -417,8 +417,43 @@ def modification_time(filename):
     try:
         _mtime = Path(filename).stat().st_mtime
         return str(datetime.fromtimestamp(_mtime))
-    except FileNotFoundError:
+    except OSError:
         return ''
+
+
+def list_directory(directory, pattern=None):
+    """
+    Return the contents of a directory, sorted by name.
+
+    An empty list is returned if the directory does not exist or cannot
+    be read, with a warning logged in the latter case. Unreadable
+    directories are a common occurrence on Windows, where the legacy
+    junction points in the user's AppData folder raise a
+    PermissionError when they are listed.
+
+    Parameters
+    ----------
+    directory : str or Path
+        The directory to be listed.
+    pattern : str, optional
+        A glob pattern used to select the directory contents. If None,
+        the whole directory is listed, by default None.
+
+    Returns
+    -------
+    list of Path
+        The selected contents of the directory.
+    """
+    directory = Path(directory)
+    try:
+        if pattern:
+            return sorted(directory.glob(pattern))
+        return sorted(directory.iterdir())
+    except (FileNotFoundError, NotADirectoryError):
+        return []
+    except OSError as error:
+        logging.warning(f"Unable to read the directory '{directory}': {error}")
+        return []
 
 
 def format_date(date):
@@ -805,7 +840,7 @@ def load_plugin(plugin, order=None):
             'order': order}
 
 
-def load_readers():
+def load_readers(directory=None):
     """
     Load the available data readers.
 
@@ -818,6 +853,12 @@ def load_readers():
     The readers are loaded as Python modules and their contents are
     added to a dictionary, which is returned.
 
+    Parameters
+    ----------
+    directory : str or Path, optional
+        The private reader directory. If None, ``~/.nexpy/readers`` is
+        used, by default None.
+
     Returns
     -------
     dict
@@ -825,17 +866,17 @@ def load_readers():
         reader and the value is the module containing the reader.
     """
     readers = {}
-    private_path = Path.home() / '.nexpy' / 'readers'
-    if private_path.exists():
-        for reader in private_path.iterdir():
-            try:
-                reader_module = import_plugin(reader)
-                if reader_module is not None:
-                    readers[reader.stem] = reader_module
-            except Exception:
-                pass
+    if directory is None:
+        directory = Path.home() / '.nexpy' / 'readers'
+    for reader in list_directory(directory):
+        try:
+            reader_module = import_plugin(reader)
+            if reader_module is not None:
+                readers[reader.stem] = reader_module
+        except Exception:
+            pass
     public_path = package_files('nexpy').joinpath('readers')
-    for reader in public_path.glob('*.py'):
+    for reader in list_directory(public_path, pattern='*.py'):
         if reader.stem != '__init__':
             try:
                 reader_module = import_plugin(reader)
@@ -853,7 +894,7 @@ def load_readers():
     return readers
 
 
-def load_models():
+def load_models(directory=None):
     """
     Load the available models.
 
@@ -866,6 +907,12 @@ def load_models():
     The models are loaded as Python modules and their contents are added
     to a dictionary, which is returned.
 
+    Parameters
+    ----------
+    directory : str or Path, optional
+        The private model directory. If None, ``~/.nexpy/models`` is
+        used, by default None.
+
     Returns
     -------
     dict
@@ -873,17 +920,17 @@ def load_models():
         and the value is the module containing the model.
     """
     models = {}
-    private_path = Path.home() / '.nexpy' / 'models'
-    if private_path.exists():
-        for model in private_path.iterdir():
-            try:
-                model_module = import_plugin(model)
-                if model_module is not None:
-                    models[model.stem] = model_module
-            except Exception:
-                pass
+    if directory is None:
+        directory = Path.home() / '.nexpy' / 'models'
+    for model in list_directory(directory):
+        try:
+            model_module = import_plugin(model)
+            if model_module is not None:
+                models[model.stem] = model_module
+        except Exception:
+            pass
     public_path = package_files('nexpy').joinpath('models')
-    for model in public_path.glob('*.py'):
+    for model in list_directory(public_path, pattern='*.py'):
         if model.stem != '__init__':
             try:
                 model_module = import_plugin(model)
@@ -972,6 +1019,8 @@ def initialize_settings(settings):
     if script_directory and Path(script_directory).is_dir():
         settings.set('settings', 'scriptdirectory', script_directory)
     elif not settings.has_option('settings', 'scriptdirectory'):
+        settings.set('settings', 'scriptdirectory', None)
+    elif not str(settings.get('settings', 'scriptdirectory') or '').strip():
         settings.set('settings', 'scriptdirectory', None)
 
     if 'plugins' not in settings.sections():
@@ -1322,8 +1371,12 @@ class NXConfigParser(ConfigParser, object):
 
     def save(self):
         """Save the settings file."""
-        with open(self.file, 'w') as f:
-            self.write(f)
+        try:
+            with open(self.file, 'w') as f:
+                self.write(f)
+        except OSError as error:
+            logging.warning(f"Unable to save the settings file "
+                            f"'{self.file}': {error}")
 
     def purge(self, section):
         """Remove all options in the specified section."""
