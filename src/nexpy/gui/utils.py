@@ -1021,9 +1021,6 @@ def initialize_settings(settings):
     elif not settings.has_option('settings', 'scriptdirectory'):
         settings.set('settings', 'scriptdirectory', None)
     elif not str(settings.get('settings', 'scriptdirectory') or '').strip():
-        # Repair settings files containing a blank script directory.
-        # Path('') is the current working directory, so a blank entry
-        # would cause the whole tree below it to be scanned.
         settings.set('settings', 'scriptdirectory', None)
 
     if 'plugins' not in settings.sections():

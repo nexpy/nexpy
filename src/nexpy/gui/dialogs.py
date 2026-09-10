@@ -1090,8 +1090,6 @@ class LockDialog(NXDialog):
                 except FileNotFoundError:
                     pass
                 except OSError as error:
-                    # On Windows, the lock file cannot be removed while
-                    # the process that created it still has it open.
                     logging.warning(f"Unable to clear the lock file "
                                     f"'{lock_path}': {error}")
                 del self.checkbox[f]
@@ -1165,9 +1163,6 @@ class SettingsDialog(NXDialog):
                                      cfg['lockexpiry'])
         self.mainwindow.settings.set('settings', 'lockdirectory',
                                      cfg['lockdirectory'])
-        # A blank entry means that no public script directory has been
-        # defined. It must be stored as None, because Path('') is the
-        # current working directory.
         script_directory = self.parameters['scriptdirectory'].value
         if not str(script_directory or '').strip():
             script_directory = None

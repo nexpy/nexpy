@@ -217,16 +217,15 @@ class MainWindow(QtWidgets.QMainWindow):
         """Called when the application palette changes"""
         define_mode()
 
-    # Populate the menu bar with common actions and shortcuts
     def add_menu_action(self, menu, action, defer_shortcut=False):
         """Add action to menu as well as self
 
         So that when the menu bar is invisible, its actions are still
         available.
 
-        If defer_shortcut is True, set the shortcut context to widget-only,
-        where it will avoid conflict with shortcuts already bound to the
-        widgets themselves.
+        If defer_shortcut is True, set the shortcut context to
+        widget-only, where it will avoid conflict with shortcuts already
+        bound to the widgets themselves.
         """
         menu.addAction(action)
         self.addAction(action)
@@ -2535,10 +2534,6 @@ class MainWindow(QtWidgets.QMainWindow):
         depth : int, optional
             Current recursion depth, by default 0.
         """
-        # An unset script directory is stored as None or an empty
-        # string. Path('') is the current working directory, so an empty
-        # string would otherwise scan the whole directory tree from
-        # wherever NeXpy happened to be launched.
         if directory is None or str(directory).strip() == '':
             menu.setEnabled(False)
             return

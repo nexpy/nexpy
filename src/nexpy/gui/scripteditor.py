@@ -274,8 +274,6 @@ class NXScriptEditor(NXTab):
                 f.write(self.get_text())
             args = self.argument_box.text()
             self.mainwindow.console.execute(f'run -i {file_name} {args}')
-            # The console executes the script asynchronously, so the file
-            # is still open on Windows. Defer removal if it fails.
             _temporary_scripts.append(file_name)
             remove_temporary_scripts()
         else:

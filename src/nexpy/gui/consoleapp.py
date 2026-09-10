@@ -143,9 +143,6 @@ class NXConsoleApp(JupyterQtConsoleApp):
                                                            maxBytes=50000,
                                                            backupCount=5)
         except OSError as error:
-            # On Windows, the log file cannot be opened or rotated if it
-            # is held open by another NeXpy instance. Fall back to
-            # logging to the console rather than aborting the launch.
             handler = logging.StreamHandler()
             self.log_warning = (f"Unable to open the log file '{log_file}': "
                                 f"{error}")
