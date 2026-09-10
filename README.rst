@@ -22,8 +22,9 @@ installed as an optional extra package::
 
     $ pip install nexpy[qt]
 
-The ``[qt]`` extra installs PyQt5 as the Qt binding. If you prefer a different
-binding, you can use ``[pyqt6]``, ``[pyside2]``, or ``[pyside6]`` instead.
+The ``[qt]`` extra installs PyQt5 as the Qt binding. If you prefer a
+different binding, you can use ``[pyqt6]``, ``[pyside2]``, or
+``[pyside6]`` instead.
 
 NeXpy can be installed in an isolated environment using `uv
 <https://docs.astral.sh/uv/>`__::
@@ -34,20 +35,22 @@ or `pipx <https://pipx.pypa.io/>`__::
 
     $ pipx install nexpy[qt]
 
-If you have the `Python Setup Tools
-<https://pypi.python.org/pypi/setuptools>`__, you can install the
-package from the source code either by downloading one of the `Github
-releases <https://github.com/nexpy/nexpy/releases>`__ or by cloning the
-latest development version in the `NeXpy Git repository
+You can also install the package from the source code, either by
+downloading one of the `Github releases
+<https://github.com/nexpy/nexpy/releases>`__ or by cloning the latest
+development version in the `NeXpy Git repository
 <https://github.com/nexpy/nexpy>`__::
 
     $ git clone https://github.com/nexpy/nexpy.git
 
-Then use standard Python tools to build and/or install a distribution
-from within the source directory::
+Then install it from within the source directory::
 
-    $ python -m build  # build a distribution
-    $ python -m pip install .  # install the package
+    $ pip install .
+
+If you intend to modify the code, install it in editable mode, so that
+your changes take effect without reinstalling::
+
+    $ pip install -e .
 
 The Python API for reading and writing NeXus files is in a separate
 package, `nexusformat <https://github.com/nexpy/nexusformat>`__, which
@@ -128,6 +131,7 @@ fabio              https://github.com/silx-kit/fabio
 pillow             https://pillow.readthedocs.io/
 pylatexenc         https://pylatexenc.readthedocs.io/
 ansi2html          https://pypi.python.org/pypi/ansi2html/
+dateparser         https://dateparser.readthedocs.io/
 mplcursors         https://mplcursors.readthedocs.io/
 =================  =================================================
 
