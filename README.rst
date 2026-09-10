@@ -1,7 +1,7 @@
 Installation
 ============
 Released versions of NeXpy are available on `PyPI
-<https://pypi.python.org/pypi/NeXpy/>`__ and `conda-forge
+<https://pypi.org/project/NeXpy/>`__ and `conda-forge
 <https://anaconda.org/conda-forge/nexpy>`__.
 
 NeXpy can be installed into an existing environment using 'pip'::
@@ -54,7 +54,7 @@ your changes take effect without reinstalling::
 
 The Python API for reading and writing NeXus files is in a separate
 package, `nexusformat <https://github.com/nexpy/nexusformat>`__, which
-is also available on `PyPI <https://pypi.python.org/pypi/nexusformat>`__
+is also available on `PyPI <https://pypi.org/project/nexusformat/>`__
 and `conda-forge <https://anaconda.org/conda-forge/nexusformat>`__.
 
 If the NeXpy GUI is not required, the package may be used in any Python
@@ -74,13 +74,17 @@ latest development version in the `NeXpy Git repository
 
     $ git clone https://github.com/nexpy/nexusformat.git
 
+It is then installed from within the source directory in the same way,
+using ``pip install .``, or ``pip install -e .`` for an editable
+installation.
+
 Required Libraries
 ==================
 Python Command-Line API
 -----------------------
 NeXpy provides a GUI interface to the `nexusformat API
 <https://github.com/nexpy/nexusformat>`__, which uses `h5py
-<http://h5py.org>`__ to read and write HDF5 files that implement the
+<https://www.h5py.org>`__ to read and write HDF5 files that implement the
 `NeXus data format standard <https://www.nexusformat.org>`__. It does
 not use the NeXus C API, which means that the current version cannot
 read and write legacy HDF4 or XML NeXus files. One of the `NeXus
@@ -88,33 +92,35 @@ conversion utilities <https://manual.nexusformat.org/utilities.html>`__
 should be used to convert such files to HDF5.
 
 If you only intend to utilize the Python API from the command-line, the
-only other required libraries are `NumPy <https://numpy.org>`__ and
-`SciPy <http://scipy.org>`__. Autocompletion of group and field paths
-within an open file is available if `IPython <https://ipython.org/>`__
-is installed.
+required libraries are limited to those listed below, principally `NumPy
+<https://numpy.org>`__ and `SciPy <https://scipy.org>`__. Autocompletion
+of group and field paths within an open file is available if `IPython
+<https://ipython.org/>`__ is installed.
 
 =================  =================================================
 Library            URL
 =================  =================================================
 nexusformat        https://github.com/nexpy/nexusformat/
 h5py               https://www.h5py.org
+hdf5plugin         https://hdf5plugin.readthedocs.io/
 numpy              https://numpy.org/
 scipy              https://scipy.org/
 packaging          https://packaging.pypa.io/
 dateutil           https://dateutil.readthedocs.io/
+chardet            https://chardet.readthedocs.io/
 colored            https://dslackw.gitlab.io/colored/
 pygments           https://pygments.org/
 =================  =================================================
 
 NeXpy GUI
 ---------
-The GUI is built using the PyQt. The `qtpy package
+The GUI is built using PyQt. The `qtpy package
 <https://github.com/spyder-ide/qtpy>`__ is used to import whatever PyQt
 library is installed, whether PyQt5, PyQt6, PySide2, or PySide6.
 
-NeXpy embeds an `IPython shell <http://ipython.org/>`__ and `Matplotlib
-plotting pane <http://matplotlib.sourceforge.net>`__, within a Qt GUI
-based on the Jupyter QtConsole with an in-process kernel.
+NeXpy embeds an `IPython shell <https://ipython.org/>`__ and `Matplotlib
+plotting pane <https://matplotlib.org>`__, within a Qt GUI based on the
+Jupyter QtConsole with an in-process kernel.
 
 Least-squares fitting of 1D data uses the `LMFIT package
 <https://lmfit.github.io/lmfit-py/>`__.
@@ -125,12 +131,13 @@ Library            URL
 IPython            https://ipython.org/
 qtconsole          https://qtconsole.readthedocs.io/
 qtpy               https://github.com/spyder-ide/qtpy
+darkdetect         https://github.com/albertosottile/darkdetect
 matplotlib         https://matplotlib.org/
 lmfit              https://lmfit.github.io/lmfit-py/
 fabio              https://github.com/silx-kit/fabio
 pillow             https://pillow.readthedocs.io/
 pylatexenc         https://pylatexenc.readthedocs.io/
-ansi2html          https://pypi.python.org/pypi/ansi2html/
+ansi2html          https://pypi.org/project/ansi2html/
 dateparser         https://dateparser.readthedocs.io/
 mplcursors         https://mplcursors.readthedocs.io/
 =================  =================================================
@@ -139,19 +146,19 @@ Additional Packages
 -------------------
 Importers may require additional libraries to read the imported files in
 their native format, *e.g.*, `spec2nexus
-<http://spec2nexus.readthedocs.org/>`__ for reading SPEC files.
+<https://spec2nexus.readthedocs.io/>`__ for reading SPEC files.
 
-From v0.9.1, a new 2D smoothing option is available in the list of
-interpolations in the signal tab if `astropy <http://www.astropy.org>`__
-is installed. It is labelled 'convolve' and provides, by default, a
-2-pixel Gaussian smoothing of the data. The number of pixels can be
-changed in the shell by setting ``plotview.smooth``.
+A 2D smoothing option is available in the list of interpolations in the
+signal tab if `astropy <https://www.astropy.org>`__ is installed. It is
+labelled 'convolve' and provides, by default, a 2-pixel Gaussian
+smoothing of the data. The number of pixels can be changed in the shell
+by setting ``plotview.smooth``.
 
 =================  =================================================
 Library            URL
 =================  =================================================
-spec2nexus         http://spec2nexus.readthedocs.org/
-astropy            http://www.astropy.org/
+spec2nexus         https://spec2nexus.readthedocs.io/
+astropy            https://www.astropy.org/
 =================  =================================================
 
 .. note:: NeXpy should still run without these additional packages, but
@@ -159,9 +166,8 @@ astropy            http://www.astropy.org/
 
 Running the GUI
 ---------------
-To run from the installed location, add the $prefix/bin directory to
-your path if you installed outside the python installation, and then
-run::
+Once the package is installed, the GUI is launched from the command
+line::
 
     $ nexpy [-r]
 
@@ -169,22 +175,22 @@ The -r option restores all files loaded in the previous session.
 
 Semantic Versioning
 -------------------
-NeXpy uses `Semantic Versioning <http://semver.org/spec/v2.0.0.html>`__.
+NeXpy uses `Semantic Versioning <https://semver.org/spec/v2.0.0.html>`__.
 
 User Support
 ------------
-Consult the `NeXpy documentation <http://nexpy.github.io/nexpy/>`__ for
+Consult the `NeXpy documentation <https://nexpy.github.io/nexpy/>`__ for
 details of both the Python command-line API and how to use the NeXpy
 GUI. If you have any general questions concerning the use of NeXpy,
 please address them to the `NeXus Mailing List
-<http://download.nexusformat.org/doc/html/mailinglist.html>`__. If you
-discover any bugs, please submit a `Github issue
+<https://manual.nexusformat.org/mailinglist.html>`__. If you discover
+any bugs, please submit a `Github issue
 <https://github.com/nexpy/nexpy/issues>`__, preferably with relevant
 tracebacks.
 
 Acknowledgements
 ----------------
-The `NeXus format <http://www.nexusformat.org>`__ for neutron, x-ray and
+The `NeXus format <https://www.nexusformat.org>`__ for neutron, x-ray and
 muon data is developed by an international collaboration under the
 supervision of the `NeXus International Advisory Committee
 <https://www.nexusformat.org/NIAC.html>`__. The Python tree API used in
