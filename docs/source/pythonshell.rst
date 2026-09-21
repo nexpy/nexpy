@@ -60,13 +60,6 @@ file, which can be displayed by printing the 'tree' property::
         shape = [1679 1475]
         yaw = 0.0
           @units = 'degree'
-      goniometer:NXgoniometer
-        chi = -90.0
-          @units = 'degree'
-        phi = -5.0
-          @end = 360.0
-          @step = 0.10000000149011612
-          @units = 'degree'
       monochromator:NXmonochromator
         energy = 86.72528557354696
           @units = 'keV'
@@ -112,6 +105,16 @@ but once open, the mode values are stored as 'r' or 'rw'.
              ``backup`` function.
 
 .. seealso:: :mod:`nexusformat.nexus.tree.NXroot.backup`
+
+A context manager can be used to allow multiple read/write operations to be performed on the file before it is closed. Otherwise, the file is automatically opened and closed for each operation.
+
+ >>> with nxopen('nexus_file.nxs', 'w') as root:
+ >>>     root['entry'] = NXentry()
+ >>>     root['entry/sample'] = NXsample()
+ >>>     root['entry/sample/temperature'] = NXfield(40.0, units='K')
+
+.. seealso:: ``nxopen`` is an alias for ``nxload``. See `Multiple
+             Operations`_ for more details.
 
 Creating NeXus Data
 ===================
@@ -388,10 +391,49 @@ HDF5 attributes that specify how the data are stored.
 All these values can be adjusted at the command line until the first
 slab has been written, whether to a file or in core memory, using the
 ``compression``, ``chunks``, ``maxshape`` or ``fillvalue`` properties,
-*e.g.*
+*e.g.*,
 
  >>> z = NXfield(shape=(1000,1000,1000), dtype=np.float32)
  >>> z.compression = 'lzf'
+
+Virtual Fields
+^^^^^^^^^^^^^^
+Virtual fields contain data arrays assembled from entire arrays or slabs
+stored in multiple NeXus or HDF5 files. They are implemented as HDF5
+virtual datasets, which contain pointers to the files and the paths
+within those files, so that the composite array can be treated as a
+single array for extracting slabs, *e.g.*, for plotting.
+
+In the *nexusformat* package, virtual fields are used to add an extra dimension to multidimensional fields stored in each file, whose size is equal to the number of files. If there is a scalar field that corresponds to a measurement parameter, such as temperature, that is changing in each file, a NXdata group can be created, using the ``nxconsolidate`` function, in which the parameter values define the axis of the extra dimension.
+
+In the following example, each NeXus file contains a NXdata group with a
+signal of shape (1000, 1000) and a scalar field containing the
+temperature value. After creating the virtual field by combining all six
+files, the resulting signal has a shape of (6, 1000, 1000). The
+resulting NXdata group has ``temperature`` as an additional axis.
+
+ >>> scan_files = [f'scan_{T}K.nxs' for T in range(50, 300, 50)]
+ >>> data_path = '/entry/data'
+ >>> scan_path = '/entry/sample/temperature'
+ >>> with nxopen('scan.nxs', 'w') as root:
+ >>>     scan_data = nxconsolidate(scan_files, data_path, scan_path)
+ >>>     root['entry'] = NXentry(scan_data=scan_data)
+ >>> print(root['entry/scan_data'].tree)
+ scan_data:NXdata
+  @axes = ['temperature', 'Qk', 'Qh']
+  @signal = 'data'
+  Qh = float64(1000)
+  Qk = float64(1000)
+  data = float64(6x1000x1000)
+  temperature = float64(6)
+ >>> root['entry/scan_data'].nxsignal.__class__
+ nexusformat.nexus.tree.NXvirtualfield
+
+.. warning:: The virtual field is initially stored in a HDF5 core memory
+             file, but it should be saved to disk before further access.
+             Mapping data in virtual fields to the original files is
+             both slow and memory intensive using the HDF5 core driver.
+
 
 NeXus Groups
 ------------
@@ -1168,17 +1210,18 @@ open/close operations::
 The file will be opened at the start of the of the ``with`` clause and
 closed automatically at the end.
 
-.. note:: This context manager can be nested so it is safe to add a ``with``
-          clause within a function that might, in some implementations, be
-          embedded in another ``with`` clause. The file is only closed when the
-          outermost context manager is exited.
+.. note:: This context manager can be nested so it is safe to add a
+          ``with`` clause within a function that might, in some
+          implementations, be embedded in another ``with`` clause. The
+          file is only closed when the outermost context manager is
+          exited.
 
-In v0.7.7, the ability to use a context manager directly with ``NXroot``
-objects, rather than its associated ``NXfile``, was added. This allows
-the use of a similar syntax to the Python ``open`` function, in which a
-``with`` clause ensuring that the file is opened and closed, before and
-after the file access, respectively. To make this analogy clearer,
-``nxopen`` was added as an alias to ``nxload``.
+Alternatively, it is possible to use a context manager directly with
+``NXroot`` objects, rather than its associated ``NXfile``.
+This allows the use of a similar syntax to the Python ``open`` function,
+in which a ``with`` clause ensuring that the file is opened and closed,
+before and after the file access, respectively. To make this analogy
+clearer, ``nxopen`` was added as an alias to ``nxload``.
 
 In the following code, a NeXus file is created, filled with NeXus
 objects and then closed.
