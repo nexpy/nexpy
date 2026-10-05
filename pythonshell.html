@@ -5,7 +5,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Python Interface to NeXus &#8212; NeXpy 2.0.3 documentation</title>
+    <title>Python Interface to NeXus &#8212; NeXpy 2.1.0 documentation</title>
     <link rel="stylesheet" type="text/css" href="_static/pygments.css" />
     <link rel="stylesheet" type="text/css" href="_static/sphinxdoc.css" />
     <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
@@ -33,7 +33,7 @@
         <li class="right" >
           <a href="includeme.html" title="Installation"
              accesskey="P">previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 2.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 2.1.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Interface to NeXus</a></li> 
       </ul>
     </div>  
@@ -1290,6 +1290,30 @@ named ‘base_classes’, ‘applications’ and
 <p>These functions do not produce any output when run within
 the NeXpy shell. Please use the <a class="reference internal" href="pythongui.html#validate-data"><span class="std std-ref">Validate Data</span></a> menu item when using NeXpy.</p>
 </div>
+<p>The same checks can be run from the command line without starting
+Python.</p>
+<ul class="simple">
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">nxcheck</span></code>:</dt><dd><p>Checks a NeXus file, or a group within it, against the base class
+definitions and, optionally, its application definition.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">nxvalidate</span></code>:</dt><dd><p>Validates a NeXus file against an application definition, which is
+either read from the file or specified explicitly.</p>
+</dd>
+</dl>
+</li>
+<li><dl class="simple">
+<dt><code class="docutils literal notranslate"><span class="pre">nxlint</span></code>:</dt><dd><p>Checks NXDL application definition files for structural errors, such
+as violations of the NXDL schema. This is useful when developing new
+application definitions.</p>
+</dd>
+</dl>
+</li>
+</ul>
+<p>The options of each script are described in <a class="reference internal" href="#command-line-scripts"><span class="std std-ref">Command-Line Scripts</span></a>.</p>
 </div>
 <div class="section" id="nexus-file-operations">
 <h2>NeXus File Operations<a class="headerlink" href="#nexus-file-operations" title="Permalink to this headline">¶</a></h2>
@@ -1563,6 +1587,257 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 <code class="docutils literal notranslate"><span class="pre">NX_COMPRESSION</span></code>, <code class="docutils literal notranslate"><span class="pre">NX_DEFINITIONS</span></code>, <code class="docutils literal notranslate"><span class="pre">NX_ENCODING</span></code>, <em>etc</em>.</p>
 </div>
 </div>
+<div class="section" id="command-line-scripts">
+<h2>Command-Line Scripts<a class="headerlink" href="#command-line-scripts" title="Permalink to this headline">¶</a></h2>
+<p>The <em>nexusformat</em> package installs a number of command-line scripts
+that can be run from a terminal without starting a Python session. Each
+script accepts the <code class="docutils literal notranslate"><span class="pre">-h</span></code> (<code class="docutils literal notranslate"><span class="pre">--help</span></code>) option, which prints a summary of
+its arguments, and the <code class="docutils literal notranslate"><span class="pre">-v</span></code> (<code class="docutils literal notranslate"><span class="pre">--version</span></code>) option, which prints the
+installed version of the package. The output of <code class="docutils literal notranslate"><span class="pre">--help</span></code> is reproduced
+below for each script.</p>
+<div class="section" id="nexusformat">
+<h3>nexusformat<a class="headerlink" href="#nexusformat" title="Permalink to this headline">¶</a></h3>
+<p>This prints the version of the <em>nexusformat</em> package that is installed.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span>$ nexusformat
+nexusformat v2.0.4
+</pre></div>
+</div>
+</div>
+<div class="section" id="nxdir">
+<h3>nxdir<a class="headerlink" href="#nxdir" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">nxdir</span></code> prints the tree of a NeXus file to the terminal, equivalent to
+the <code class="docutils literal notranslate"><span class="pre">tree</span></code> property of an NXroot group. By default, all the groups and
+fields in the file are listed, but the <code class="docutils literal notranslate"><span class="pre">-s</span></code> option restricts the output
+to the first level of the hierarchy.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">nxdir</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="n">file</span>
+
+<span class="n">Print</span> <span class="n">a</span> <span class="n">NeXus</span> <span class="n">file</span> <span class="n">tree</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">file</span>           <span class="n">name</span> <span class="n">of</span> <span class="n">NeXus</span> <span class="n">file</span>
+
+<span class="n">options</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>     <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">s</span><span class="p">,</span> <span class="o">--</span><span class="n">short</span>    <span class="nb">print</span> <span class="n">only</span> <span class="n">the</span> <span class="n">first</span> <span class="n">level</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>  <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nxcheck">
+<h3>nxcheck<a class="headerlink" href="#nxcheck" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">nxcheck</span></code> checks the groups within a NeXus file against the base class
+definitions of the NeXus standard, as done by the <code class="docutils literal notranslate"><span class="pre">check</span></code> method of
+NXgroup objects. The <code class="docutils literal notranslate"><span class="pre">-p</span></code> option restricts the check to a single group
+within the file. If the <code class="docutils literal notranslate"><span class="pre">-a</span></code> option is used, the file is also validated
+against an application definition, either the one given as an argument or
+the one specified by the <code class="docutils literal notranslate"><span class="pre">definition</span></code> field of the NXentry group (see
+<code class="docutils literal notranslate"><span class="pre">nxvalidate</span></code> below). By default, warnings and errors are printed; use
+<code class="docutils literal notranslate"><span class="pre">-e</span></code> to print only errors or <code class="docutils literal notranslate"><span class="pre">-i</span></code> to include informational messages.
+The <code class="docutils literal notranslate"><span class="pre">-d</span></code> option specifies an alternative directory containing the NeXus
+definitions.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">nxcheck</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPLICATION</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DEFINITIONS</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+               <span class="n">filename</span>
+
+<span class="n">Check</span> <span class="n">NeXus</span> <span class="n">files</span> <span class="n">against</span> <span class="n">the</span> <span class="n">NeXus</span> <span class="n">standard</span><span class="o">.</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">filename</span>              <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">NeXus</span> <span class="n">file</span> <span class="n">to</span> <span class="n">be</span> <span class="n">validated</span>
+
+<span class="n">options</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">p</span><span class="p">,</span> <span class="o">--</span><span class="n">path</span> <span class="n">PATH</span>       <span class="n">path</span> <span class="n">to</span> <span class="n">group</span> <span class="n">to</span> <span class="n">be</span> <span class="n">validated</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">NeXus</span>
+                        <span class="n">file</span>
+  <span class="o">-</span><span class="n">a</span><span class="p">,</span> <span class="o">--</span><span class="n">application</span> <span class="p">[</span><span class="n">APPLICATION</span><span class="p">]</span>
+                        <span class="n">validate</span> <span class="n">the</span> <span class="n">NeXus</span> <span class="n">file</span> <span class="n">against</span> <span class="n">its</span>
+                        <span class="n">application</span> <span class="n">definition</span>
+  <span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">definitions</span> <span class="n">DEFINITIONS</span>
+                        <span class="n">path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">directory</span> <span class="n">containing</span> <span class="n">NeXus</span>
+                        <span class="n">definitions</span>
+  <span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="o">--</span><span class="n">info</span>            <span class="n">output</span> <span class="n">info</span> <span class="n">messages</span> <span class="ow">in</span> <span class="n">addition</span> <span class="n">to</span> <span class="n">warnings</span>
+                        <span class="ow">and</span> <span class="n">errors</span>
+  <span class="o">-</span><span class="n">w</span><span class="p">,</span> <span class="o">--</span><span class="n">warning</span>         <span class="n">output</span> <span class="n">warning</span> <span class="ow">and</span> <span class="n">error</span> <span class="n">messages</span> <span class="p">(</span><span class="n">default</span><span class="p">)</span>
+  <span class="o">-</span><span class="n">e</span><span class="p">,</span> <span class="o">--</span><span class="n">error</span>           <span class="n">output</span> <span class="n">errors</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nxvalidate">
+<h3>nxvalidate<a class="headerlink" href="#nxvalidate" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">nxvalidate</span></code> validates a NXentry group in a NeXus file against an
+application definition, checking that all the fields and groups required
+by the definition are present and valid. It is equivalent to <code class="docutils literal notranslate"><span class="pre">nxcheck</span></code>
+with the <code class="docutils literal notranslate"><span class="pre">-a</span></code> option, but as a standalone command. If no application
+definition is given with <code class="docutils literal notranslate"><span class="pre">-a</span></code>, it is read from the <code class="docutils literal notranslate"><span class="pre">definition</span></code> field
+of the entry. The <code class="docutils literal notranslate"><span class="pre">-p</span></code> option selects the NXentry group to be validated
+if there is more than one in the file. The application definition is
+itself checked for structural errors before validation (see <code class="docutils literal notranslate"><span class="pre">nxlint</span></code>).</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">nxvalidate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PATH</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">a</span> <span class="p">[</span><span class="n">APPLICATION</span><span class="p">]]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DEFINITIONS</span><span class="p">]</span>
+                  <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+                  <span class="n">filename</span>
+
+<span class="n">Validate</span> <span class="n">NeXus</span> <span class="n">files</span> <span class="n">against</span> <span class="n">an</span> <span class="n">application</span> <span class="n">definition</span><span class="o">.</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">filename</span>              <span class="n">name</span> <span class="n">of</span> <span class="n">the</span> <span class="n">NeXus</span> <span class="n">file</span> <span class="n">to</span> <span class="n">be</span> <span class="n">validated</span>
+
+<span class="n">options</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">p</span><span class="p">,</span> <span class="o">--</span><span class="n">path</span> <span class="n">PATH</span>       <span class="n">path</span> <span class="n">to</span> <span class="n">NXentry</span> <span class="n">group</span> <span class="n">to</span> <span class="n">be</span> <span class="n">validated</span> <span class="ow">in</span> <span class="n">the</span>
+                        <span class="n">NeXus</span> <span class="n">file</span>
+  <span class="o">-</span><span class="n">a</span><span class="p">,</span> <span class="o">--</span><span class="n">application</span> <span class="p">[</span><span class="n">APPLICATION</span><span class="p">]</span>
+                        <span class="n">application</span> <span class="n">definition</span> <span class="n">to</span> <span class="n">validate</span> <span class="n">against</span><span class="p">;</span>
+                        <span class="k">if</span> <span class="n">omitted</span><span class="p">,</span> <span class="n">the</span> <span class="n">definition</span> <span class="ow">is</span> <span class="n">read</span> <span class="kn">from</span> <span class="nn">the</span>
+                        <span class="n">file</span>
+  <span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">definitions</span> <span class="n">DEFINITIONS</span>
+                        <span class="n">path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">directory</span> <span class="n">containing</span> <span class="n">NeXus</span>
+                        <span class="n">definitions</span>
+  <span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="o">--</span><span class="n">info</span>            <span class="n">output</span> <span class="n">info</span> <span class="n">messages</span> <span class="ow">in</span> <span class="n">addition</span> <span class="n">to</span> <span class="n">warnings</span>
+                        <span class="ow">and</span> <span class="n">errors</span>
+  <span class="o">-</span><span class="n">w</span><span class="p">,</span> <span class="o">--</span><span class="n">warning</span>         <span class="n">output</span> <span class="n">warning</span> <span class="ow">and</span> <span class="n">error</span> <span class="n">messages</span> <span class="p">(</span><span class="n">default</span><span class="p">)</span>
+  <span class="o">-</span><span class="n">e</span><span class="p">,</span> <span class="o">--</span><span class="n">error</span>           <span class="n">output</span> <span class="n">errors</span> <span class="n">only</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nxlint">
+<h3>nxlint<a class="headerlink" href="#nxlint" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">nxlint</span></code> checks one or more NXDL files for structural errors. It
+detects common authoring errors, such as <code class="docutils literal notranslate"><span class="pre">field</span></code> elements nested within
+other <code class="docutils literal notranslate"><span class="pre">field</span></code> elements, and, if the <code class="docutils literal notranslate"><span class="pre">nxdl.xsd</span></code> schema file is present
+in the definitions directory, validates the files against the NXDL
+schema. It is intended for anyone writing or modifying application
+definitions.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">nxlint</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DEFINITIONS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">i</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">w</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+              <span class="n">filename</span> <span class="p">[</span><span class="n">filename</span> <span class="o">...</span><span class="p">]</span>
+
+<span class="n">Check</span> <span class="n">NXDL</span> <span class="n">application</span> <span class="n">definition</span> <span class="n">files</span> <span class="k">for</span> <span class="n">structural</span> <span class="n">errors</span><span class="o">.</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">filename</span>              <span class="n">NXDL</span> <span class="n">file</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="n">to</span> <span class="n">lint</span>
+
+<span class="n">options</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">definitions</span> <span class="n">DEFINITIONS</span>
+                        <span class="n">path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">directory</span> <span class="n">containing</span> <span class="n">NeXus</span>
+                        <span class="n">definitions</span>
+  <span class="o">-</span><span class="n">i</span><span class="p">,</span> <span class="o">--</span><span class="n">info</span>            <span class="n">output</span> <span class="n">info</span> <span class="n">messages</span> <span class="ow">in</span> <span class="n">addition</span> <span class="n">to</span> <span class="n">warnings</span>
+                        <span class="ow">and</span> <span class="n">errors</span>
+  <span class="o">-</span><span class="n">w</span><span class="p">,</span> <span class="o">--</span><span class="n">warning</span>         <span class="n">output</span> <span class="n">warning</span> <span class="ow">and</span> <span class="n">error</span> <span class="n">messages</span> <span class="p">(</span><span class="n">default</span><span class="p">)</span>
+  <span class="o">-</span><span class="n">e</span><span class="p">,</span> <span class="o">--</span><span class="n">error</span>           <span class="n">output</span> <span class="n">errors</span> <span class="n">only</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nxinspect">
+<h3>nxinspect<a class="headerlink" href="#nxinspect" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">nxinspect</span></code> prints the definition of a NeXus base class as formatted
+XML, as done by the <code class="docutils literal notranslate"><span class="pre">inspect</span></code> method of NXgroup objects.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">nxinspect</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DEFINITIONS</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="n">baseclass</span>
+
+<span class="n">Inspects</span> <span class="n">base</span> <span class="n">classes</span><span class="o">.</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">baseclass</span>             <span class="n">base</span> <span class="k">class</span> <span class="nc">to</span> <span class="n">be</span> <span class="n">inspected</span>
+
+<span class="n">options</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">definitions</span> <span class="n">DEFINITIONS</span>
+                        <span class="n">path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">directory</span> <span class="n">containing</span> <span class="n">NeXus</span>
+                        <span class="n">definitions</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nxduplicate">
+<h3>nxduplicate<a class="headerlink" href="#nxduplicate" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">nxduplicate</span></code> copies the contents of one NeXus file to a new file. The
+<code class="docutils literal notranslate"><span class="pre">-e</span></code> option replaces external links with copies of the data they point
+to, so that the new file is self-contained. An existing output file is
+not replaced unless the <code class="docutils literal notranslate"><span class="pre">-o</span></code> option is used.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">nxduplicate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span> <span class="nb">input</span> <span class="n">output</span>
+
+<span class="n">Copy</span> <span class="n">a</span> <span class="n">NeXus</span> <span class="n">file</span> <span class="n">to</span> <span class="n">another</span> <span class="n">file</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="nb">input</span>                 <span class="n">name</span> <span class="n">of</span> <span class="n">NeXus</span> <span class="nb">input</span> <span class="n">file</span>
+  <span class="n">output</span>                <span class="n">name</span> <span class="n">of</span> <span class="n">NeXus</span> <span class="n">output</span> <span class="n">file</span>
+
+<span class="n">options</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">e</span><span class="p">,</span> <span class="o">--</span><span class="n">expand_external</span>
+                        <span class="n">store</span> <span class="n">external</span> <span class="n">links</span> <span class="n">within</span> <span class="n">the</span> <span class="n">new</span> <span class="n">file</span>
+  <span class="o">-</span><span class="n">o</span><span class="p">,</span> <span class="o">--</span><span class="n">overwrite</span>       <span class="n">overwrite</span> <span class="nb">any</span> <span class="n">existing</span> <span class="n">file</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nxconsolidate">
+<h3>nxconsolidate<a class="headerlink" href="#nxconsolidate" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">nxconsolidate</span></code> combines the NXdata groups found at the same path in a
+series of NeXus files, <em>e.g.</em>, a sequence of scans, into a single
+NXdata group with an additional leading dimension. The data are not
+copied; the new group contains a virtual field that references the
+original files. The group is saved in a NXentry group (named ‘entry’ by
+default) in a new NeXus file. If the path to a scan variable is given
+with the <code class="docutils literal notranslate"><span class="pre">-s</span></code> option, the files are sorted by its values, which are
+used to define the new axis. Otherwise, the axis is the file index.
+Wild cards may be used to specify the input files.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">nxconsolidate</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="o">-</span><span class="n">d</span> <span class="n">DATA</span> <span class="p">[</span><span class="o">-</span><span class="n">s</span> <span class="n">SCAN</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">ENTRY</span><span class="p">]</span> <span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span>
+                     <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+                     <span class="p">[</span><span class="n">files</span> <span class="o">...</span><span class="p">]</span>
+
+<span class="n">Copy</span> <span class="n">a</span> <span class="n">NeXus</span> <span class="n">file</span> <span class="n">to</span> <span class="n">another</span> <span class="n">file</span>
+
+<span class="n">positional</span> <span class="n">arguments</span><span class="p">:</span>
+  <span class="n">files</span>                <span class="n">name</span> <span class="n">of</span> <span class="n">NeXus</span> <span class="nb">input</span> <span class="n">files</span> <span class="p">(</span><span class="n">wild</span> <span class="n">cards</span>
+                       <span class="n">allowed</span><span class="p">)</span>
+
+<span class="n">options</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>           <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">data</span> <span class="n">DATA</span>      <span class="n">path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">NXdata</span> <span class="n">group</span>
+  <span class="o">-</span><span class="n">s</span><span class="p">,</span> <span class="o">--</span><span class="n">scan</span> <span class="n">SCAN</span>      <span class="n">path</span> <span class="n">to</span> <span class="n">the</span> <span class="n">scan</span> <span class="n">variable</span>
+  <span class="o">-</span><span class="n">e</span><span class="p">,</span> <span class="o">--</span><span class="n">entry</span> <span class="n">ENTRY</span>    <span class="n">name</span> <span class="n">of</span> <span class="n">NXentry</span> <span class="n">group</span>
+  <span class="o">-</span><span class="n">o</span><span class="p">,</span> <span class="o">--</span><span class="n">output</span> <span class="n">OUTPUT</span>  <span class="n">name</span> <span class="n">of</span> <span class="n">NeXus</span> <span class="n">output</span> <span class="n">file</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>        <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="nxstack">
+<h3>nxstack<a class="headerlink" href="#nxstack" title="Permalink to this headline">¶</a></h3>
+<p><code class="docutils literal notranslate"><span class="pre">nxstack</span></code> stacks a series of image files, such as TIFF files, that
+have a common prefix and file extension, into a single three-dimensional
+array stored in a new NeXus file. The images are read using the <em>fabio</em>
+package, which must be installed. The <code class="docutils literal notranslate"><span class="pre">-f</span></code> and <code class="docutils literal notranslate"><span class="pre">-l</span></code> options select a
+subset of the frames and <code class="docutils literal notranslate"><span class="pre">-r</span></code> stores them in reverse order. The data
+can be compressed using the HDF5 compression method specified by <code class="docutils literal notranslate"><span class="pre">-c</span></code>.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">usage</span><span class="p">:</span> <span class="n">nxstack</span> <span class="p">[</span><span class="o">-</span><span class="n">h</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">d</span> <span class="n">DIRECTORY</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">p</span> <span class="n">PREFIX</span> <span class="p">[</span><span class="n">PREFIX</span> <span class="o">...</span><span class="p">]]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">e</span> <span class="n">EXTENSION</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">o</span> <span class="n">OUTPUT</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">f</span> <span class="n">FIRST</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">l</span> <span class="n">LAST</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">r</span><span class="p">]</span>
+               <span class="p">[</span><span class="o">-</span><span class="n">c</span> <span class="n">COMPRESSION</span><span class="p">]</span> <span class="p">[</span><span class="o">-</span><span class="n">v</span><span class="p">]</span>
+
+<span class="n">Stack</span> <span class="n">images</span> <span class="n">into</span> <span class="n">a</span> <span class="n">single</span> <span class="n">NeXus</span> <span class="n">file</span>
+
+<span class="n">options</span><span class="p">:</span>
+  <span class="o">-</span><span class="n">h</span><span class="p">,</span> <span class="o">--</span><span class="n">help</span>            <span class="n">show</span> <span class="n">this</span> <span class="n">help</span> <span class="n">message</span> <span class="ow">and</span> <span class="n">exit</span>
+  <span class="o">-</span><span class="n">d</span><span class="p">,</span> <span class="o">--</span><span class="n">directory</span> <span class="n">DIRECTORY</span>
+                        <span class="n">directory</span> <span class="n">containing</span> <span class="n">the</span> <span class="n">raw</span> <span class="n">images</span>
+  <span class="o">-</span><span class="n">p</span><span class="p">,</span> <span class="o">--</span><span class="n">prefix</span> <span class="n">PREFIX</span> <span class="p">[</span><span class="n">PREFIX</span> <span class="o">...</span><span class="p">]</span>
+                        <span class="n">common</span> <span class="n">prefix</span> <span class="n">to</span> <span class="nb">all</span> <span class="n">images</span>
+  <span class="o">-</span><span class="n">e</span><span class="p">,</span> <span class="o">--</span><span class="n">extension</span> <span class="n">EXTENSION</span>
+                        <span class="n">file</span> <span class="n">extension</span> <span class="n">of</span> <span class="n">raw</span> <span class="n">images</span>
+  <span class="o">-</span><span class="n">o</span><span class="p">,</span> <span class="o">--</span><span class="n">output</span> <span class="n">OUTPUT</span>   <span class="n">name</span> <span class="n">of</span> <span class="n">NeXus</span> <span class="n">output</span> <span class="n">file</span>
+  <span class="o">-</span><span class="n">f</span><span class="p">,</span> <span class="o">--</span><span class="n">first</span> <span class="n">FIRST</span>     <span class="n">first</span> <span class="n">frame</span> <span class="n">to</span> <span class="n">be</span> <span class="n">included</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">stacked</span>
+                        <span class="n">data</span>
+  <span class="o">-</span><span class="n">l</span><span class="p">,</span> <span class="o">--</span><span class="n">last</span> <span class="n">LAST</span>       <span class="n">last</span> <span class="n">frame</span> <span class="n">to</span> <span class="n">be</span> <span class="n">included</span> <span class="ow">in</span> <span class="n">the</span> <span class="n">stacked</span>
+                        <span class="n">data</span>
+  <span class="o">-</span><span class="n">r</span><span class="p">,</span> <span class="o">--</span><span class="n">reverse</span>         <span class="n">store</span> <span class="n">images</span> <span class="ow">in</span> <span class="n">reverse</span> <span class="n">order</span>
+  <span class="o">-</span><span class="n">c</span><span class="p">,</span> <span class="o">--</span><span class="n">compression</span> <span class="n">COMPRESSION</span>
+                        <span class="n">HDF5</span> <span class="n">compression</span> <span class="n">method</span>
+  <span class="o">-</span><span class="n">v</span><span class="p">,</span> <span class="o">--</span><span class="n">version</span>         <span class="n">show</span> <span class="n">program</span><span class="s1">&#39;s version number and exit</span>
+</pre></div>
+</div>
+</div>
+</div>
 </div>
 
 
@@ -1634,6 +1909,18 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
 <li><a class="reference internal" href="#environment-variables">Environment variables</a></li>
 </ul>
 </li>
+<li><a class="reference internal" href="#command-line-scripts">Command-Line Scripts</a><ul>
+<li><a class="reference internal" href="#nexusformat">nexusformat</a></li>
+<li><a class="reference internal" href="#nxdir">nxdir</a></li>
+<li><a class="reference internal" href="#nxcheck">nxcheck</a></li>
+<li><a class="reference internal" href="#nxvalidate">nxvalidate</a></li>
+<li><a class="reference internal" href="#nxlint">nxlint</a></li>
+<li><a class="reference internal" href="#nxinspect">nxinspect</a></li>
+<li><a class="reference internal" href="#nxduplicate">nxduplicate</a></li>
+<li><a class="reference internal" href="#nxconsolidate">nxconsolidate</a></li>
+<li><a class="reference internal" href="#nxstack">nxstack</a></li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -1685,7 +1972,7 @@ prefixing the parameter name in upper case by ‘NX_’, <em>e.g.</em>,
         <li class="right" >
           <a href="includeme.html" title="Installation"
              >previous</a> |</li>
-        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 2.0.3 documentation</a> &#187;</li>
+        <li class="nav-item nav-item-0"><a href="index.html">NeXpy 2.1.0 documentation</a> &#187;</li>
         <li class="nav-item nav-item-this"><a href="">Python Interface to NeXus</a></li> 
       </ul>
     </div>

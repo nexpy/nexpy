@@ -1159,6 +1159,24 @@ NXgroup objects have the following methods.
              the NeXpy shell. Please use the :ref:`Validate Data
              <validate-data>` menu item when using NeXpy.
 
+The same checks can be run from the command line without starting
+Python.
+
+* ``nxcheck``:
+    Checks a NeXus file, or a group within it, against the base class
+    definitions and, optionally, its application definition.
+
+* ``nxvalidate``:
+    Validates a NeXus file against an application definition, which is
+    either read from the file or specified explicitly.
+
+* ``nxlint``:
+    Checks NXDL application definition files for structural errors, such
+    as violations of the NXDL schema. This is useful when developing new
+    application definitions.
+
+The options of each script are described in :ref:`Command-Line Scripts`.
+
 NeXus File Operations
 =====================
 Changes to a NeXus tree that has been loaded from disk or saved to a
@@ -1402,3 +1420,263 @@ All of the configuration parameters defined in the previous section can
 be defined. The equivalent environment variable name is constructed by
 prefixing the parameter name in upper case by 'NX\_', *e.g.*,
 ``NX_COMPRESSION``, ``NX_DEFINITIONS``, ``NX_ENCODING``, *etc*.
+
+Command-Line Scripts
+====================
+The *nexusformat* package installs a number of command-line scripts
+that can be run from a terminal without starting a Python session. Each
+script accepts the ``-h`` (``--help``) option, which prints a summary of
+its arguments, and the ``-v`` (``--version``) option, which prints the
+installed version of the package. The output of ``--help`` is reproduced
+below for each script.
+
+nexusformat
+-----------
+This prints the version of the *nexusformat* package that is installed.
+
+.. code-block::
+
+    $ nexusformat
+    nexusformat v2.0.4
+
+nxdir
+-----
+``nxdir`` prints the tree of a NeXus file to the terminal, equivalent to
+the ``tree`` property of an NXroot group. By default, all the groups and
+fields in the file are listed, but the ``-s`` option restricts the output
+to the first level of the hierarchy.
+
+.. code-block::
+
+    usage: nxdir [-h] [-s] [-v] file
+
+    Print a NeXus file tree
+
+    positional arguments:
+      file           name of NeXus file
+
+    options:
+      -h, --help     show this help message and exit
+      -s, --short    print only the first level
+      -v, --version  show program's version number and exit
+
+nxcheck
+-------
+``nxcheck`` checks the groups within a NeXus file against the base class
+definitions of the NeXus standard, as done by the ``check`` method of
+NXgroup objects. The ``-p`` option restricts the check to a single group
+within the file. If the ``-a`` option is used, the file is also validated
+against an application definition, either the one given as an argument or
+the one specified by the ``definition`` field of the NXentry group (see
+``nxvalidate`` below). By default, warnings and errors are printed; use
+``-e`` to print only errors or ``-i`` to include informational messages.
+The ``-d`` option specifies an alternative directory containing the NeXus
+definitions.
+
+.. code-block::
+
+    usage: nxcheck [-h] [-p PATH] [-a [APPLICATION]] [-d DEFINITIONS]
+                   [-i] [-w] [-e] [-v]
+                   filename
+
+    Check NeXus files against the NeXus standard.
+
+    positional arguments:
+      filename              name of the NeXus file to be validated
+
+    options:
+      -h, --help            show this help message and exit
+      -p, --path PATH       path to group to be validated in the NeXus
+                            file
+      -a, --application [APPLICATION]
+                            validate the NeXus file against its
+                            application definition
+      -d, --definitions DEFINITIONS
+                            path to the directory containing NeXus
+                            definitions
+      -i, --info            output info messages in addition to warnings
+                            and errors
+      -w, --warning         output warning and error messages (default)
+      -e, --error           output errors
+      -v, --version         show program's version number and exit
+
+nxvalidate
+----------
+``nxvalidate`` validates a NXentry group in a NeXus file against an
+application definition, checking that all the fields and groups required
+by the definition are present and valid. It is equivalent to ``nxcheck``
+with the ``-a`` option, but as a standalone command. If no application
+definition is given with ``-a``, it is read from the ``definition`` field
+of the entry. The ``-p`` option selects the NXentry group to be validated
+if there is more than one in the file. The application definition is
+itself checked for structural errors before validation (see ``nxlint``).
+
+.. code-block::
+
+    usage: nxvalidate [-h] [-p PATH] [-a [APPLICATION]] [-d DEFINITIONS]
+                      [-i] [-w] [-e] [-v]
+                      filename
+
+    Validate NeXus files against an application definition.
+
+    positional arguments:
+      filename              name of the NeXus file to be validated
+
+    options:
+      -h, --help            show this help message and exit
+      -p, --path PATH       path to NXentry group to be validated in the
+                            NeXus file
+      -a, --application [APPLICATION]
+                            application definition to validate against;
+                            if omitted, the definition is read from the
+                            file
+      -d, --definitions DEFINITIONS
+                            path to the directory containing NeXus
+                            definitions
+      -i, --info            output info messages in addition to warnings
+                            and errors
+      -w, --warning         output warning and error messages (default)
+      -e, --error           output errors only
+      -v, --version         show program's version number and exit
+
+nxlint
+------
+``nxlint`` checks one or more NXDL files for structural errors. It
+detects common authoring errors, such as ``field`` elements nested within
+other ``field`` elements, and, if the ``nxdl.xsd`` schema file is present
+in the definitions directory, validates the files against the NXDL
+schema. It is intended for anyone writing or modifying application
+definitions.
+
+.. code-block::
+
+    usage: nxlint [-h] [-d DEFINITIONS] [-i] [-w] [-e] [-v]
+                  filename [filename ...]
+
+    Check NXDL application definition files for structural errors.
+
+    positional arguments:
+      filename              NXDL file(s) to lint
+
+    options:
+      -h, --help            show this help message and exit
+      -d, --definitions DEFINITIONS
+                            path to the directory containing NeXus
+                            definitions
+      -i, --info            output info messages in addition to warnings
+                            and errors
+      -w, --warning         output warning and error messages (default)
+      -e, --error           output errors only
+      -v, --version         show program's version number and exit
+
+nxinspect
+---------
+``nxinspect`` prints the definition of a NeXus base class as formatted
+XML, as done by the ``inspect`` method of NXgroup objects.
+
+.. code-block::
+
+    usage: nxinspect [-h] [-d DEFINITIONS] [-v] baseclass
+
+    Inspects base classes.
+
+    positional arguments:
+      baseclass             base class to be inspected
+
+    options:
+      -h, --help            show this help message and exit
+      -d, --definitions DEFINITIONS
+                            path to the directory containing NeXus
+                            definitions
+      -v, --version         show program's version number and exit
+
+nxduplicate
+-----------
+``nxduplicate`` copies the contents of one NeXus file to a new file. The
+``-e`` option replaces external links with copies of the data they point
+to, so that the new file is self-contained. An existing output file is
+not replaced unless the ``-o`` option is used.
+
+.. code-block::
+
+    usage: nxduplicate [-h] [-e] [-o] [-v] input output
+
+    Copy a NeXus file to another file
+
+    positional arguments:
+      input                 name of NeXus input file
+      output                name of NeXus output file
+
+    options:
+      -h, --help            show this help message and exit
+      -e, --expand_external
+                            store external links within the new file
+      -o, --overwrite       overwrite any existing file
+      -v, --version         show program's version number and exit
+
+nxconsolidate
+-------------
+``nxconsolidate`` combines the NXdata groups found at the same path in a
+series of NeXus files, *e.g.*, a sequence of scans, into a single
+NXdata group with an additional leading dimension. The data are not
+copied; the new group contains a virtual field that references the
+original files. The group is saved in a NXentry group (named 'entry' by
+default) in a new NeXus file. If the path to a scan variable is given
+with the ``-s`` option, the files are sorted by its values, which are
+used to define the new axis. Otherwise, the axis is the file index.
+Wild cards may be used to specify the input files.
+
+.. code-block::
+
+    usage: nxconsolidate [-h] -d DATA [-s SCAN] [-e ENTRY] -o OUTPUT
+                         [-v]
+                         [files ...]
+
+    Copy a NeXus file to another file
+
+    positional arguments:
+      files                name of NeXus input files (wild cards
+                           allowed)
+
+    options:
+      -h, --help           show this help message and exit
+      -d, --data DATA      path to the NXdata group
+      -s, --scan SCAN      path to the scan variable
+      -e, --entry ENTRY    name of NXentry group
+      -o, --output OUTPUT  name of NeXus output file
+      -v, --version        show program's version number and exit
+
+nxstack
+-------
+``nxstack`` stacks a series of image files, such as TIFF files, that
+have a common prefix and file extension, into a single three-dimensional
+array stored in a new NeXus file. The images are read using the *fabio*
+package, which must be installed. The ``-f`` and ``-l`` options select a
+subset of the frames and ``-r`` stores them in reverse order. The data
+can be compressed using the HDF5 compression method specified by ``-c``.
+
+.. code-block::
+
+    usage: nxstack [-h] [-d DIRECTORY] [-p PREFIX [PREFIX ...]]
+                   [-e EXTENSION] [-o OUTPUT] [-f FIRST] [-l LAST] [-r]
+                   [-c COMPRESSION] [-v]
+
+    Stack images into a single NeXus file
+
+    options:
+      -h, --help            show this help message and exit
+      -d, --directory DIRECTORY
+                            directory containing the raw images
+      -p, --prefix PREFIX [PREFIX ...]
+                            common prefix to all images
+      -e, --extension EXTENSION
+                            file extension of raw images
+      -o, --output OUTPUT   name of NeXus output file
+      -f, --first FIRST     first frame to be included in the stacked
+                            data
+      -l, --last LAST       last frame to be included in the stacked
+                            data
+      -r, --reverse         store images in reverse order
+      -c, --compression COMPRESSION
+                            HDF5 compression method
+      -v, --version         show program's version number and exit
