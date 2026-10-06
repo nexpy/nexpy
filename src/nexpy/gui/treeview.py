@@ -596,6 +596,7 @@ class NXTreeView(QtWidgets.QTreeView):
             self.mainwindow.savefile_action.setEnabled(True)
             self.mainwindow.reload_action.setEnabled(True)
             self.mainwindow.remove_action.setEnabled(True)
+            self.mainwindow.validate_action.setEnabled(True)
             if node.nxfilemode:
                 self.mainwindow.duplicate_action.setEnabled(True)
                 if node.nxfilemode == 'r':

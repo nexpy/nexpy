@@ -4449,7 +4449,7 @@ class ValidateTab(NXTab):
             self.pushbutton[button].setCheckable(True)
 
         if self.node.nxclass == 'NXroot':
-            entry = self.node.NXentry[0]
+            entry = self.node.NXentry[0] if self.node.NXentry else None
         elif self.node.nxclass in ['NXentry', 'NXsubentry']:
             entry = self.node
         else:
@@ -4702,7 +4702,7 @@ class ValidateTab(NXTab):
         try:
             handler = logging.getLogger('NXValidate').handlers[0]
             text = handler.flush()
-            self.text_box.setText(convertHTML(text))
+            self.text_box.setText(convertHTML(text.replace('\t', '    ')))
         except Exception:
             pass
         self.setVisible(True)
