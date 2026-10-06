@@ -4449,7 +4449,7 @@ class ValidateTab(NXTab):
             self.pushbutton[button].setCheckable(True)
 
         if self.node.nxclass == 'NXroot':
-            entry = self.node.NXentry[0]
+            entry = self.node.NXentry[0] if self.node.NXentry else None
         elif self.node.nxclass in ['NXentry', 'NXsubentry']:
             entry = self.node
         else:
