@@ -280,18 +280,63 @@ Data Menu
 
 **Validate Data**
     Displays a text window, in which the contents of the selected group
-    are checked against the NeXus standard. There are options to check
-    that the group contents conform to the base class or, in the case of
-    NXentry, NXsubentry, and NXroot groups, to validate the group
-    contents against an application definition. The definitions are, by
+    are checked against the NeXus standard. The definitions are, by
     default, stored in the installed package, but it is possible to
     select a different definitions directory, as well as a different
-    application definition file. The XML definition of the group's base
-    class can also be displayed.
+    application definition file. The results are displayed in the text
+    window, and the radio buttons below it select the minimum severity
+    of the messages that are shown (Info, Warning, or Error). Changing
+    the level, the definitions directory, or the application definition
+    automatically re-runs the most recently selected action.
 
     .. image:: /images/validation-panel.png
        :align: center
        :width: 90%
+
+    The following action buttons are available. Only one is active at a
+    time; the button for the action whose results are currently
+    displayed is shown as checked.
+
+    **Check Base Class**
+        Checks that the contents of the selected group conform to its
+        NeXus base class, reporting any fields, attributes, or child
+        groups that are not defined by the base class or that violate
+        its requirements.
+
+    **Inspect Base Class**
+        Displays the base class definition itself, so that the fields,
+        attributes, and groups that are defined for the selected group
+        can be compared with its actual contents.
+
+    **Lint Base Class**
+        Checks the NXDL file that defines the base class of the selected
+        group, rather than the group itself, for structural errors. The
+        file is taken from the ``base_classes`` subdirectory of the
+        current definitions directory. This is mainly of use to those
+        who are developing or modifying base class definitions.
+
+    **Validate Entry**
+        Only displayed if the selected group is an NXentry, NXsubentry,
+        or NXroot group (in which case the first NXentry is used).
+        Validates the entry against an application definition. If the
+        entry contains a ``definition`` field, the corresponding file in
+        the ``applications`` subdirectory of the definitions directory
+        is selected automatically.
+
+    For NXentry, NXsubentry, and NXroot groups, an **Application
+    Definition** file selector is also displayed, allowing a different
+    application definition to be chosen. Next to it, the **Lint** button
+    checks the selected application definition's NXDL file for
+    structural errors. It is only enabled if the application definition
+    file can be found in the definitions directory (in either the
+    ``applications`` or ``contributed_definitions`` subdirectory) or has
+    been selected explicitly. If no errors are found, a message to that
+    effect is displayed.
+
+    .. note:: Linting requires NeXpy to be installed with nexusformat
+              v2.1.0 or later. For help in interpreting the linting
+              messages, consult the `NXDL reference
+              <https://manual.nexusformat.org/nxdl.html>`_.
 
 **Add Group**
     Adds a group to the selected group in the tree with the specified
