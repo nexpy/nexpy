@@ -42,7 +42,7 @@ dependencies = [
     "lmfit",
     "matplotlib",
     "mplcursors",
-    "nexusformat >= 2.0.3",
+    "nexusformat >= 2.1.0",
     "numpy",
     "packaging",
     "pillow",

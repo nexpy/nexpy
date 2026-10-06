@@ -4414,6 +4414,9 @@ class ValidateDialog(NXPanel):
 
 class ValidateTab(NXTab):
 
+    action_names = ['Check Base Class', 'Inspect Base Class',
+                    'Lint Base Class', 'Validate Entry']
+
     def __init__(self, label, node, parent=None):
 
         """
@@ -4439,10 +4442,10 @@ class ValidateTab(NXTab):
                                                  suggestion=self.definitions)
         actions = self.action_buttons(
             ('Check Base Class', self.check),
-            ('Validate Entry', self.validate),
-            ('Inspect Base Class', self.inspect))
-        for button in ['Validate Entry', 'Check Base Class',
-                       'Inspect Base Class']:
+            ('Inspect Base Class', self.inspect),
+            ('Lint Base Class', self.lint_base_class),
+            ('Validate Entry', self.validate))
+        for button in self.action_names:
             self.pushbutton[button].setCheckable(True)
 
         if self.node.nxclass == 'NXroot':
@@ -4455,6 +4458,9 @@ class ValidateTab(NXTab):
             self.pushbutton['Validate Entry'].setVisible(True)
             self.application_box = self.filebox('Application Definition',
                                                 self.choose_application)
+            self.pushbutton['Lint'] = NXPushButton(
+                'Lint', self.lint_application)
+            self.application_box.addWidget(self.pushbutton['Lint'])
             if 'definition' in entry:
                 self.application = entry['definition'].nxvalue
                 application_file = self.definitions.joinpath(
@@ -4466,6 +4472,7 @@ class ValidateTab(NXTab):
                     self.filename.setText(self.application)
             else:
                 self.application = None
+            self.set_lint_enabled()
         else:
             self.pushbutton['Validate Entry'].setVisible(False)
             self.application_box = None
@@ -4513,12 +4520,8 @@ class ValidateTab(NXTab):
                     if application_file.is_file():
                         self.application = application_file
                         self.filename.setText(str(application_file))
-                if self.pushbutton['Check Base Class'].isChecked():
-                    self.check()
-                elif self.pushbutton['Validate Entry'].isChecked():
-                    self.validate()
-                elif self.pushbutton['Inspect Base Class'].isChecked():
-                    self.inspect()
+                    self.set_lint_enabled()
+                self.rerun_action()
             else:
                 display_message("Definitions directory is not valid")
 
@@ -4536,6 +4539,7 @@ class ValidateTab(NXTab):
         if application.is_file():
             self.application = application
             self.filename.setText(str(application))
+            self.set_lint_enabled()
             if self.pushbutton['Validate Entry'].isChecked():
                 self.validate()
 
@@ -4554,16 +4558,14 @@ class ValidateTab(NXTab):
         Validates the NeXus entry against the given application
         definition and definitions. Calls self.show_log() to show the
         validation results and then sets the Validate Entry button to
-        True and the Check Base Class and Inspect Base Class buttons to
-        False.
+        True and the other action buttons to False.
         """
         try:
             self.node.validate(level=self.log_level,
                                application=self.application,
                                definitions=self.definitions)
             self.show_log()
-            for button in ['Check Base Class', 'Inspect Base Class']:
-                self.pushbutton[button].setChecked(False)
+            self.set_checked('Validate Entry')
         except NeXusError as error:
             report_error("Validating Entry", error)
             self.pushbutton['Validate Entry'].setChecked(False)
@@ -4577,9 +4579,7 @@ class ValidateTab(NXTab):
         """
         self.node.check(level=self.log_level, definitions=self.definitions)
         self.show_log()
-        self.pushbutton['Check Base Class'].setChecked(True)
-        for button in ['Validate Entry', 'Inspect Base Class']:
-            self.pushbutton[button].setChecked(False)
+        self.set_checked('Check Base Class')
 
     def inspect(self):
         """
@@ -4590,21 +4590,109 @@ class ValidateTab(NXTab):
         """
         self.node.inspect(definitions=self.definitions)
         self.show_log()
-        self.pushbutton['Inspect Base Class'].setChecked(True)
-        for button in ['Validate Entry', 'Check Base Class']:
-            self.pushbutton[button].setChecked(False)
+        self.set_checked('Inspect Base Class')
 
-    def select_level(self):
+    def lint_base_class(self):
         """
-        Slot for the level radio buttons. Runs the validation action
-        that is currently selected by the user.
+        Lints the NXDL file of the base class of the NeXus group. Calls
+        self.show_log() to show the results and then sets the Lint Base
+        Class button to True and the other action buttons to False.
         """
+        base_class = self.definitions.joinpath(
+            'base_classes', f'{self.node.nxclass}.nxdl.xml')
+        if self.lint(base_class):
+            self.set_checked('Lint Base Class')
+
+    def lint_application(self):
+        """
+        Lints the NXDL file of the application definition. Calls
+        self.show_log() to show the results and then sets all the
+        action buttons to False.
+        """
+        if self.application is not None and self.lint(self.application):
+            self.set_checked(None)
+
+    def lint(self, filepath):
+        """
+        Lints an NXDL file and logs the results.
+
+        Parameters
+        ----------
+        filepath : str or Path
+            The NXDL file, or the name of a definition in the current
+            definitions directory.
+
+        Returns
+        -------
+        bool
+            True if the file was linted, False if an error was reported.
+        """
+        try:
+            from nexusformat.nexus.validate import (
+                lint_nxdl, log, log_summary, logger)
+        except ImportError as error:
+            report_error("Linting NXDL", error)
+            return False
+        logger.setLevel({'info': logging.INFO, 'warning': logging.WARNING,
+                         'error': logging.ERROR}[self.log_level])
+        try:
+            results = lint_nxdl(filepath, definitions=self.definitions)
+        except (ImportError, NeXusError) as error:
+            report_error("Linting NXDL", error)
+            return False
+        log("\n", level='all')
+        log(f"NXDL file: {filepath}", level='all')
+        log(f"Definitions: {self.definitions}", level='all')
+        log("\n", level='all')
+        logger.total = {'warning': 0, 'error': 0}
+        if results:
+            for message, location, severity in results:
+                log(f'[{location}] {message}', level=severity)
+            log('\nFor help interpreting these errors, consult the NXDL '
+                'reference at https://manual.nexusformat.org/nxdl.html',
+                level='all')
+        else:
+            log(f'No structural errors found in "{Path(filepath).name}"',
+                level='all')
+        log_summary()
+        self.show_log()
+        return True
+
+    def set_lint_enabled(self):
+        """Enables the application Lint button if there is a file."""
+        enabled = False
+        if self.application is not None:
+            application = Path(self.application)
+            enabled = (application.is_file() or
+                       any(self.definitions.joinpath(
+                           directory, f'{application.name}.nxdl.xml'
+                           ).is_file()
+                           for directory in ('applications',
+                                             'contributed_definitions')))
+        self.pushbutton['Lint'].setEnabled(enabled)
+
+    def set_checked(self, action):
+        """Checks the named action button and unchecks the others."""
+        for button in self.action_names:
+            self.pushbutton[button].setChecked(button == action)
+
+    def rerun_action(self):
+        """Runs the validation action that is currently checked."""
         if self.pushbutton['Validate Entry'].isChecked():
             self.validate()
         elif self.pushbutton['Check Base Class'].isChecked():
             self.check()
         elif self.pushbutton['Inspect Base Class'].isChecked():
             self.inspect()
+        elif self.pushbutton['Lint Base Class'].isChecked():
+            self.lint_base_class()
+
+    def select_level(self):
+        """
+        Slot for the level radio buttons. Runs the validation action
+        that is currently selected by the user.
+        """
+        self.rerun_action()
 
     def show_log(self):
         """
