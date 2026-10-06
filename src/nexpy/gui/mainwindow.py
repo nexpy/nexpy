@@ -1058,8 +1058,8 @@ class MainWindow(QtWidgets.QMainWindow):
             tree_files = [self.tree[root].nxfilename for root in self.tree]
             nxfiles = sorted([f.name for f in Path(directory).iterdir()
                               if (f.suffix.lower() in
-                                  ('.nxs', '.nx5', '.h5', 'hdf5', 'hdf',
-                                   '.cxi', 'nxspe') and
+                                  ('.nxs', '.nx5', '.h5', '.hdf5', '.hdf',
+                                   '.cxi', '.nxspe') and
                                   str(f) not in tree_files and
                                   not f.is_symlink())],
                              key=natural_sort)
