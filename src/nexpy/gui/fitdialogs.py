@@ -5,15 +5,19 @@
 #
 # The full license is in the file COPYING, distributed with this software.
 # -----------------------------------------------------------------------------
+import ast
 import inspect
+import operator
 import re
 from itertools import cycle
 
 import numpy as np
 from lmfit import Model, Parameters
 from lmfit import __version__ as lmfit_version
+from lmfit.model import CompositeModel
 from nexusformat.nexus import (NeXusError, NXdata, NXentry, NXfield, NXnote,
                                NXparameters, NXprocess, nxload)
+from scipy.signal import fftconvolve
 
 from .plotview import NXPlotView, linestyles
 from .pyqt import QtCore, QtWidgets
@@ -61,6 +65,214 @@ def get_models():
 
 
 all_models = get_models()
+
+
+def convolve_arrays(array, kernel):
+    """
+    Convolve a model array with a normalized kernel array.
+
+    Both arrays are evaluated on the same uniform x grid. The kernel is
+    shifted so that its peak is at the center of the array, so that its
+    center parameter has no effect, and it is normalized to unit area,
+    so that its amplitude has no effect. The ends of the array are
+    padded with their edge values to reduce edge effects.
+    """
+    array = np.atleast_1d(np.asarray(array, dtype=float))
+    kernel = np.atleast_1d(np.asarray(kernel, dtype=float))
+    npts = max(array.size, kernel.size)
+    array = np.broadcast_to(array, (npts,))
+    kernel = np.broadcast_to(kernel, (npts,))
+    total = kernel.sum()
+    if npts < 2 or not np.isfinite(total) or total == 0.0:
+        return np.array(array)
+    centered = np.roll(kernel, (npts - 1) // 2 - np.argmax(np.abs(kernel)))
+    padded = np.concatenate((np.full(npts, array[0]), array,
+                             np.full(npts, array[-1])))
+    return fftconvolve(padded, centered / total, mode='same')[npts:2*npts]
+
+
+# Peak models whose area is given by ``amplitude``, with the width
+# parameters that make them delta functions when they vanish.
+peak_widths = {'GaussianModel': ('sigma',),
+               'LorentzianModel': ('sigma',),
+               'VoigtModel': ('sigma', 'gamma'),
+               'PseudoVoigtModel': ('sigma',)}
+
+
+def get_lines(model, params, max_width=0.0):
+    """
+    Return the positions and weights of a model that is a line spectrum.
+
+    A model defines a line spectrum either by providing a ``lines``
+    method, which is called with the model's function arguments and
+    returns the tuple (positions, weights) or None, or by being one of
+    the peak models in ``peak_widths`` with all of its widths no greater
+    than ``max_width``, in which case it is a single line at its center
+    with a weight given by its amplitude. If the model is not a line
+    spectrum, None is returned.
+    """
+    lines = getattr(model, 'lines', None)
+    widths = peak_widths.get(type(model).__name__)
+    if lines is None and widths is None:
+        return None
+    try:
+        args = model.make_funcargs(params, {})
+        if lines is not None:
+            result = lines(**args)
+            if result is None:
+                return None
+            return (np.atleast_1d(np.asarray(result[0], dtype=float)),
+                    np.atleast_1d(np.asarray(result[1], dtype=float)))
+        if all(abs(args[w]) <= max_width for w in widths if w in args):
+            return (np.array([float(args['center'])]),
+                    np.array([float(args['amplitude'])]))
+    except (KeyError, TypeError, ValueError):
+        pass
+    return None
+
+
+def get_terms(model):
+    """Split a model into its additive terms."""
+    if isinstance(model, CompositeModel) and model.op is operator.add:
+        return get_terms(model.left) + get_terms(model.right)
+    return [model]
+
+
+class ConvolutionModel(CompositeModel):
+    """
+    Composite model in which the left model is convolved with the right.
+
+    The left model is split into additive terms. Terms that are line
+    spectra, such as the transition energies and intensities of a
+    crystal-field model or peaks that are no wider than the internal
+    grid spacing, are convolved analytically by placing the unit-area
+    kernel on each line. The remaining terms are evaluated on an
+    internal uniform grid that is finer than the independent variable,
+    so that the result does not depend on the spacing of the data points
+    (or the plotting grid), and the convolved result is interpolated
+    back onto the requested x values.
+    """
+
+    min_points = 1001
+    oversampling = 10
+    kernel_points = 10001
+
+    def eval(self, params=None, **kwargs):
+        x = kwargs.get('x')
+        if x is None:
+            return super().eval(params=params, **kwargs)
+        x = np.asarray(x, dtype=float)
+        xmin, xmax = np.nanmin(x), np.nanmax(x)
+        if x.ndim != 1 or x.size < 2 or not xmax > xmin:
+            return super().eval(params=params, **kwargs)
+        npts = max(self.min_points, self.oversampling * x.size)
+        grid = np.linspace(xmin, xmax, npts)
+        spacing = (xmax - xmin) / (npts - 1)
+
+        lines, numeric = [], []
+        for term in get_terms(self.left):
+            line = get_lines(term, params, max_width=spacing)
+            if line is None:
+                numeric.append(term)
+            else:
+                lines.append(line)
+
+        other = {k: v for k, v in kwargs.items() if k != 'x'}
+        shape = self.kernel_shape(params, xmax - xmin, **other)
+        if shape is None:
+            lines, numeric = [], get_terms(self.left)
+
+        result = np.zeros(x.size)
+        if lines:
+            positions = np.concatenate([line[0] for line in lines])
+            weights = np.concatenate([line[1] for line in lines])
+            result += self.line_profile(positions, weights, x, params,
+                                        shape, **other)
+        if numeric:
+            kwargs['x'] = grid
+            left = sum(term.eval(params=params, **kwargs) for term in numeric)
+            if shape is None:
+                right = self.right.eval(params=params, **kwargs)
+            else:
+                mid = grid[(npts - 1) // 2]
+                right = self.right.eval(params=params, x=grid - mid + shape[0],
+                                        **other)
+            result += np.interp(x, grid, self.op(left, right))
+        return result
+
+    def kernel_shape(self, params, radius, **kwargs):
+        """
+        Return the position of the peak and the area of the kernel.
+
+        The kernel is sampled on a fine grid of half-width ``radius``
+        about its center, and the peak position is refined by a parabolic
+        fit. None is returned if the kernel cannot be normalized.
+        """
+        try:
+            center = float(self.right.make_funcargs(params, {})['center'])
+        except (KeyError, TypeError, ValueError):
+            center = 0.0
+        kgrid = center + np.linspace(-radius, radius, self.kernel_points)
+        kvalues = np.broadcast_to(
+            np.asarray(self.right.eval(params=params, x=kgrid, **kwargs),
+                       dtype=float), kgrid.shape)
+        step = kgrid[1] - kgrid[0]
+        area = kvalues.sum() * step
+        if not np.isfinite(area) or area == 0.0:
+            return None
+        magnitude = np.abs(kvalues)
+        i = np.argmax(magnitude)
+        peak = kgrid[i]
+        if 0 < i < kgrid.size - 1:
+            denominator = magnitude[i-1] - 2*magnitude[i] + magnitude[i+1]
+            if denominator < 0.0:
+                peak += 0.5 * step * (magnitude[i-1] - magnitude[i+1]) / (
+                    denominator)
+        return peak, area
+
+    def line_profile(self, positions, weights, x, params, shape, **kwargs):
+        """
+        Return the sum of unit-area kernels centered on each line.
+
+        The kernel is normalized and shifted so that its peak is at the
+        line position, as in ``convolve_arrays``.
+        """
+        peak, area = shape
+        profile = np.zeros(x.size)
+        step = max(1, 2000000 // x.size)
+        for i in range(0, positions.size, step):
+            pos, wgt = positions[i:i+step], weights[i:i+step]
+            arg = x[np.newaxis, :] - pos[:, np.newaxis] + peak
+            values = np.broadcast_to(
+                np.asarray(self.right.eval(params=params, x=arg.ravel(),
+                                           **kwargs), dtype=float),
+                (arg.size,)).reshape(arg.shape)
+            profile += wgt @ values
+        return profile / area
+
+
+def convolve(model, kernel):
+    """
+    Return a composite model, in which the model is convolved with the
+    kernel. The kernel is typically a peak function, such as a Gaussian
+    or Lorentzian, that represents the resolution function.
+    """
+    return ConvolutionModel(model, kernel, convolve_arrays)
+
+
+def get_kernel_names(text):
+    """Return the names of the models used as kernels in an expression."""
+    try:
+        tree = ast.parse(text, mode='eval')
+    except SyntaxError:
+        return set()
+    names = set()
+    for node in ast.walk(tree):
+        if (isinstance(node, ast.Call) and isinstance(node.func, ast.Name)
+                and node.func.id == 'convolve' and len(node.args) > 1):
+            names.update(n.id for n in ast.walk(node.args[1])
+                         if isinstance(n, ast.Name))
+    return names
 
 
 def get_methods():
@@ -736,9 +948,13 @@ class FitTab(NXTab):
                             model_class+'Model' in self.all_models):
                         model_class = model_class + 'Model'
                 if model_class in self.all_models:
-                    model = self.get_model_instance(model_class, model_name)
-                    parameters = model.make_params()
                     saved_parameters = group[name]['parameters']
+                    form = saved_parameters.attrs.get('form')
+                    if form is not None:
+                        form = str(form)
+                    model = self.get_model_instance(model_class, model_name,
+                                                    form=form)
+                    parameters = model.make_params()
                     for mp in parameters:
                         p = mp.replace(model.prefix, '')
                         p = self.convert_parameter_name(p, saved_parameters)
@@ -838,7 +1054,7 @@ class FitTab(NXTab):
         else:
             return ''
 
-    def get_model_instance(self, model_class, model_name):
+    def get_model_instance(self, model_class, model_name, form=None):
         """
         Returns an instance of the specified model class.
 
@@ -848,6 +1064,9 @@ class FitTab(NXTab):
             The name of the model class.
         model_name : str
             The name of the model.
+        form : str, optional
+            The form of the model. If not given, the form currently
+            selected in the form combo box is used.
 
         Returns
         -------
@@ -855,8 +1074,11 @@ class FitTab(NXTab):
             An instance of the specified model class.
         """
         if self.all_models[model_class].valid_forms:
+            if form is None or form not in self.all_models[
+                    model_class].valid_forms:
+                form = self.form_combo.selected
             return self.all_models[model_class](prefix=model_name+'_',
-                                                form=self.form_combo.selected)
+                                                form=form)
         else:
             return self.all_models[model_class](prefix=model_name+'_')
 
@@ -1142,7 +1364,9 @@ class FitTab(NXTab):
 
         This method takes a composite model as a string and evaluates
         it. The string is a valid Python expression and can contain
-        any valid Python syntax. The method first replaces all model
+        any valid Python syntax, including the function
+        ``convolve(model, kernel)``, which convolves a model with
+        another model. The method first replaces all model
         names in the string with their corresponding model objects,
         and then evaluates the string using the built-in eval() function.
         If the string is invalid Python syntax, the method raises a
@@ -1291,9 +1515,21 @@ class FitTab(NXTab):
                     box.setText(format_float(value))
             except TypeError:
                 box.setText(' ')
+        kernels = get_kernel_names(self.composite_model)
         for m in self.models:
             for parameter in m['parameters']:
                 p = m['parameters'][parameter]
+                locked = (m['name'] in kernels and
+                          parameter.replace(m['model'].prefix, '')
+                          in ('amplitude', 'center'))
+                if locked:
+                    p.value = 1.0 if parameter.endswith('amplitude') else 0.0
+                    p.vary = False
+                    p.expr = None
+                if locked or getattr(p, 'kernel_locked', False):
+                    p.box['value'].setEnabled(not locked)
+                    p.box['fixed'].setEnabled(not locked)
+                    p.kernel_locked = locked
                 if p.expr:
                     write_value(p.box['value'], self.eval_expression(p))
                     p.box['fixed'].setCheckState(QtCore.Qt.Checked)
@@ -1599,6 +1835,8 @@ class FitTab(NXTab):
         for m in self.models:
             group[m['name']] = self.get_model(m['model'])
             parameters = NXparameters(attrs={'model': m['class']})
+            if getattr(m['model'], 'form', None):
+                parameters.attrs['form'] = m['model'].form
             for name in m['parameters']:
                 p = self.fit.params[name]
                 name = name.replace(m['model'].prefix, '')
@@ -1684,6 +1922,8 @@ class FitTab(NXTab):
         for m in self.models:
             group[m['name']] = self.get_model(m['model'])
             parameters = NXparameters(attrs={'model': m['class']})
+            if getattr(m['model'], 'form', None):
+                parameters.attrs['form'] = m['model'].form
             for n, p in m['parameters'].items():
                 n = n.replace(m['model'].prefix, '')
                 parameters[n] = NXfield(p.value, error=p.stderr,
@@ -1853,6 +2093,8 @@ class CompositeDialog(NXDialog):
 
         self.parent = parent
         self.expression = NXLineEdit(self.parent.composite_model)
+        self.expression.setToolTip(
+            "Combine models using +, -, *, / or convolve(model, kernel)")
         self.add_model_button = NXPushButton('Insert Model', self.insert_model)
         self.model_combo = NXComboBox(items=[m['name']
                                              for m in self.parent.models])
@@ -1886,6 +2128,7 @@ class CompositeDialog(NXDialog):
         try:
             self.parent.model = self.parent.eval_model(self.expression.text())
             self.parent.composite_model = self.expression.text()
+            self.parent.write_parameters()
             super().accept()
         except NeXusError as error:
             report_error("Editing Composite Model", error)
