@@ -4458,6 +4458,9 @@ class ValidateTab(NXTab):
             self.pushbutton['Validate Entry'].setVisible(True)
             self.application_box = self.filebox('Application Definition',
                                                 self.choose_application)
+            self.pushbutton['Inspect'] = NXPushButton(
+                'Inspect', self.inspect_application)
+            self.application_box.addWidget(self.pushbutton['Inspect'])
             self.pushbutton['Lint'] = NXPushButton(
                 'Lint', self.lint_application)
             self.application_box.addWidget(self.pushbutton['Lint'])
@@ -4598,10 +4601,24 @@ class ValidateTab(NXTab):
         self.show_log() to show the results and then sets the Lint Base
         Class button to True and the other action buttons to False.
         """
-        base_class = self.definitions.joinpath(
-            'base_classes', f'{self.node.nxclass}.nxdl.xml')
-        if self.lint(base_class):
+        if self.lint(self.node.nxclass):
             self.set_checked('Lint Base Class')
+
+    def inspect_application(self):
+        """
+        Inspects the NXDL file of the application definition. Calls
+        self.show_log() to show the results and then sets all the
+        action buttons to False.
+        """
+        try:
+            from nexusformat.nexus.validate import inspect_application
+        except ImportError as error:
+            report_error("Inspecting Application", error)
+            return
+        if self.application is not None:
+            inspect_application(self.application, definitions=self.definitions)
+            self.show_log()
+            self.set_checked(None)
 
     def lint_application(self):
         """
@@ -4659,7 +4676,7 @@ class ValidateTab(NXTab):
         return True
 
     def set_lint_enabled(self):
-        """Enables the application Lint button if there is a file."""
+        """Enables the Inspect and Lint buttons if there is a file."""
         enabled = False
         if self.application is not None:
             application = Path(self.application)
@@ -4669,6 +4686,7 @@ class ValidateTab(NXTab):
                            ).is_file()
                            for directory in ('applications',
                                              'contributed_definitions')))
+        self.pushbutton['Inspect'].setEnabled(enabled)
         self.pushbutton['Lint'].setEnabled(enabled)
 
     def set_checked(self, action):
