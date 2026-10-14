@@ -4664,7 +4664,8 @@ class ValidateTab(NXTab):
         logger.total = {'warning': 0, 'error': 0}
         if results:
             for message, location, severity in results:
-                log(f'[{location}] {message}', level=severity)
+                log(f'[{location}] {message}' if location else message,
+                    level=severity)
             log('\nFor help interpreting these errors, consult the NXDL '
                 'reference at https://manual.nexusformat.org/nxdl.html',
                 level='all')
