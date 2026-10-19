@@ -16,6 +16,7 @@ import sys
 import textwrap
 import traceback as tb
 from configparser import ConfigParser
+from configparser import Error as ConfigParserError
 from datetime import datetime
 
 if sys.version_info < (3, 10):
@@ -1337,10 +1338,8 @@ class NXConfigParser(ConfigParser, object):
         ConfigParser object is fixed for compatibility with older
         versions of NeXpy.
         """
-        super().__init__(allow_no_value=True)
+        super().__init__(allow_no_value=True, delimiters=('=',))
         self.file = settings_file
-        self._optcre = re.compile(  # makes '=' the only valid delimiter
-            r"(?P<option>.*?)\s*(?:(?P<vi>=)\s*(?P<value>.*))?$", re.VERBOSE)
         super().read(self.file)
         sections = self.sections()
         if 'backups' not in sections:
@@ -1374,7 +1373,7 @@ class NXConfigParser(ConfigParser, object):
         try:
             with open(self.file, 'w') as f:
                 self.write(f)
-        except OSError as error:
+        except (OSError, ConfigParserError) as error:
             logging.warning(f"Unable to save the settings file "
                             f"'{self.file}': {error}")
 
