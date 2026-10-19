@@ -312,7 +312,7 @@ class FitDialog(NXPanel):
         parent : QWidget, optional
             The parent of the dialog. The default is None.
         """
-        super().__init__('Fit', title='Fit Panel', apply=True, reset=True,
+        super().__init__('Fit', title='Fit Panel', apply=True, reset=False,
                          parent=parent)
         self.setMinimumWidth(850)
         self.tab_class = FitTab
