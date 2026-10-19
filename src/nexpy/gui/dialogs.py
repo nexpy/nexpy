@@ -1855,7 +1855,8 @@ class StyleDialog(NXPanel):
         parent : QWidget, optional
             The parent of the Style Panel. The default is None.
         """
-        super().__init__('Style', title='Style Panel', parent=parent)
+        super().__init__('Style', title='Style Panel', reset=False,
+                         parent=parent)
         self.tab_class = StyleTab
         self.plotview_sort = True
 

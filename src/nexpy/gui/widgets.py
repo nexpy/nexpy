@@ -1814,6 +1814,10 @@ class NXTab(NXWidget):
         """To be implemented by subclasses."""
         pass
 
+    def reset(self):
+        """To be implemented by subclasses."""
+        pass
+
 
 class GridParameters(dict):
 
