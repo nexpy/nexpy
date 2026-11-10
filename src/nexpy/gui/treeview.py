@@ -686,7 +686,10 @@ class NXTreeView(QtWidgets.QTreeView):
         if item and item.node:
             group = item.node
             for name in [n for n in group if isinstance(group[n], NXgroup)]:
-                _ = group[name].entries
+                try:
+                    _ = group[name].entries
+                except NeXusError:
+                    continue
 
     def addMenu(self, action):
         """Add an action to the menu."""
