@@ -62,9 +62,40 @@ from nexusformat.nexus import (NeXusError, NXcollection, NXdata, NXfield,
 ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
 
+def format_traceback(error_type, error, traceback):
+    """Return a colorized traceback as a string with ANSI escape codes.
+
+    The colors are those of the dark or light mode of the system. The
+    theme of the formatter is set with `theme_name` in IPython 9 and
+    later and with `color_scheme` in IPython 8.
+    """
+    dark = in_dark_mode()
+    try:
+        formatter = FormattedTB(mode="Context",
+                                theme_name='linux' if dark else 'lightbg')
+    except TypeError:
+        formatter = FormattedTB(mode="Context",
+                                color_scheme='Linux' if dark else 'LightBG')
+    return formatter.text(error_type, error, traceback)
+
+
 def report_error(context, error):
-    """Display a message box with an error message"""
+    """Display a message box with an error message.
+
+    The error is also written to the log file. A NeXusError is an
+    expected, user-facing error, so only its message is logged. Any other
+    exception is logged with its full traceback for debugging.
+    """
     title = type(error).__name__ + ': ' + context
+    try:
+        if (isinstance(error, BaseException)
+                and not isinstance(error, NeXusError)):
+            logging.error(f"{title}\n" + format_traceback(
+                type(error), error, error.__traceback__) + '\n')
+        else:
+            logging.warning(f"{title}: {error}")
+    except Exception:
+        pass
     message_box = QtWidgets.QMessageBox()
     message_box.setText(title)
     message_box.setInformativeText(str(error))
@@ -122,13 +153,7 @@ def report_exception(*args):
         exc = args[0]
         error_type, error, traceback = exc.__class__, exc, exc.__traceback__
     message = ''.join(tb.format_exception_only(error_type, error))
-    if in_dark_mode():
-        theme = 'linux'
-    else:
-        theme = 'lightbg'
-    information = FormattedTB(mode="Context", theme_name=theme).text(
-        error_type, error,
-                                                   traceback)
+    information = format_traceback(error_type, error, traceback)
     logging.error('Exception in GUI event loop\n'+information+'\n')
     message_box = QtWidgets.QMessageBox()
     message_box.setText(message)
