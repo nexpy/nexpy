@@ -28,6 +28,15 @@ def raise_type_error():
     return None * None
 
 
+def test_format_traceback_returns_the_traceback():
+    try:
+        raise_type_error()
+    except TypeError as error:
+        text = utils.format_traceback(type(error), error, error.__traceback__)
+    assert 'TypeError' in text
+    assert 'raise_type_error' in text
+
+
 def test_unexpected_exception_logs_traceback(caplog):
     with caplog.at_level(logging.INFO):
         try:

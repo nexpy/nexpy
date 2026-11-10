@@ -63,13 +63,20 @@ ansi_re = re.compile(r'\x1b' + r'\[([\dA-Fa-f;]*?)m')
 
 
 def format_traceback(error_type, error, traceback):
-    """Return a colorized traceback as a string with ANSI escape codes"""
-    if in_dark_mode():
-        theme = 'linux'
-    else:
-        theme = 'lightbg'
-    return FormattedTB(mode="Context", theme_name=theme).text(
-        error_type, error, traceback)
+    """Return a colorized traceback as a string with ANSI escape codes.
+
+    The colors are those of the dark or light mode of the system. The
+    theme of the formatter is set with `theme_name` in IPython 9 and
+    later and with `color_scheme` in IPython 8.
+    """
+    dark = in_dark_mode()
+    try:
+        formatter = FormattedTB(mode="Context",
+                                theme_name='linux' if dark else 'lightbg')
+    except TypeError:
+        formatter = FormattedTB(mode="Context",
+                                color_scheme='Linux' if dark else 'LightBG')
+    return formatter.text(error_type, error, traceback)
 
 
 def report_error(context, error):
